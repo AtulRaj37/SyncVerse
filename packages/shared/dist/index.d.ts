@@ -49,10 +49,13 @@ export interface ServerToClientEvents {
     S2C_SYNC_PONG: (serverTime: number) => void;
     S2C_ERROR: (message: string) => void;
     S2C_CHAT_MESSAGE: (data: {
-        userId: string;
-        name: string;
-        text: string;
-        timestamp: number;
+        id: string;
+        userId?: string;
+        name?: string;
+        text?: string;
+        timestamp?: number;
+        type?: 'TEXT' | 'EMOJI' | 'GIF';
+        gifUrl?: string;
     }) => void;
     S2C_LOCAL_FILE_SELECTED: (data: {
         fileName: string;
@@ -80,7 +83,12 @@ export interface ClientToServerEvents {
         currentTime: number;
         status: UserState['status'];
     }) => void;
-    C2S_CHAT_MESSAGE: (text: string) => void;
+    C2S_CHAT_MESSAGE: (data: {
+        id?: string;
+        text?: string;
+        type?: 'TEXT' | 'EMOJI' | 'GIF';
+        gifUrl?: string;
+    }) => void;
     C2S_CHANGE_MEDIA: (mediaId: string, source: 'YOUTUBE' | 'SOUNDCLOUD' | 'LOCAL' | 'SCREEN') => void;
     C2S_LOCAL_FILE_SELECTED: (data: {
         fileName: string;
