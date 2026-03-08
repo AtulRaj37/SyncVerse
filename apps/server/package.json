@@ -1,0 +1,37 @@
+{
+    "name": "syncverse-server",
+    "version": "1.0.0",
+    "description": "SyncVerse WebSocket Backend",
+    "main": "dist/index.js",
+    "scripts": {
+        "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+        "build": "tsc",
+        "start": "node dist/index.js"
+    },
+    "dependencies": {
+        "@prisma/client": "^6.19.2",
+        "@socket.io/redis-adapter": "^8.3.0",
+        "bcryptjs": "^3.0.3",
+        "cors": "^2.8.6",
+        "dotenv": "^16.4.5",
+        "express": "^4.19.2",
+        "jsonwebtoken": "^9.0.3",
+        "multer": "^2.1.1",
+        "nanoid": "^3.3.11",
+        "prisma": "^6.19.2",
+        "redis": "^5.11.0",
+        "socket.io": "^4.7.5",
+        "zod": "^3.23.8"
+    },
+    "devDependencies": {
+        "@syncverse/shared": "*",
+        "@types/bcryptjs": "^2.4.6",
+        "@types/cors": "^2.8.19",
+        "@types/express": "^4.17.21",
+        "@types/jsonwebtoken": "^9.0.10",
+        "@types/multer": "^2.1.0",
+        "@types/node": "^20.12.7",
+        "ts-node-dev": "^2.0.0",
+        "typescript": "^5.4.5"
+    }
+}

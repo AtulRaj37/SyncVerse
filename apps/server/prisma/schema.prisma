@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+ provider = "prisma-client-js"
+}
+
+datasource db {
+ provider = "postgresql"
+ url      = env("DATABASE_URL")
+}
+
+model User {
+ id        String   @id @default(uuid())
+ email     String?  @unique
+ password  String?
+ isGuest   Boolean  @default(true)
+ name      String
+ bio       String?  @db.VarChar(160)
+ avatarUrl String?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+ hostedRooms Room[]             @relation("RoomHost")
+ timeline    RoomTimelineEvent[]
+}
+
+model Room {
+ id          String   @id @default(uuid())
+ roomCode    String   @unique @default(cuid())
+ name        String
+ hostId      String
+ host        User     @relation("RoomHost", fields: [hostId], references: [id])
+ isPrivate   Boolean  @default(false)
+ createdAt   DateTime @default(now())
+ updatedAt   DateTime @updatedAt
+
+ timeline    RoomTimelineEvent[]
+}
+
+enum TimelineEventType {
+ USER_JOINED
+ MEDIA_PLAYED
+ CHAT_MESSAGE
+ REACTION
+}
+
+model RoomTimelineEvent {
+ id        String            @id @default(uuid())
+ roomId    String
+ room      Room              @relation(fields: [roomId], references: [id], onDelete: Cascade)
+ userId    String?
+ user      User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+ eventType TimelineEventType
+ payload   Json
+ createdAt DateTime @default(now())
+}
