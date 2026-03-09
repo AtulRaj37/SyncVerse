@@ -4,6 +4,10 @@ node_modules
 
 # Next.js build
 .next
+out
+
+# Turbopack / cache
+.cache
 
 # Environment variables
 .env
@@ -19,6 +23,9 @@ build
 
 # Coverage
 coverage
+
+# PostgreSQL data (IMPORTANT)
+postgres-data
 
 # OS files
 .DS_Store
