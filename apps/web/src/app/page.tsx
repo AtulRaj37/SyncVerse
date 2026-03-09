@@ -7,7 +7,6 @@ import Image from "next/image";
 import { useUserStore } from "@/store/useUserStore";
 import { Eye, EyeOff } from "lucide-react";
 import dynamic from "next/dynamic";
-import { body } from "framer-motion/client";
 
 const Galaxy = dynamic(() => import("@/components/Galaxy"), { ssr: false });
 
@@ -124,11 +123,12 @@ export default function LandingPage() {
       let currentToken = token;
 
       if (!currentToken) {
-        const authRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/${endpoint}`, {
+        const authRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/guest`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
+          body: JSON.stringify({ name }),
         });
+
         const authData = await authRes.json();
         if (!authRes.ok) throw new Error(authData.error || "Failed to join as guest");
 
