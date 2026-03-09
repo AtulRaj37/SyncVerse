@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useUserStore } from "@/store/useUserStore";
 import { Eye, EyeOff } from "lucide-react";
 import dynamic from "next/dynamic";
+import { body } from "framer-motion/client";
 
 const Galaxy = dynamic(() => import("@/components/Galaxy"), { ssr: false });
 
@@ -121,36 +122,35 @@ const handleJoinRoom = async (e: React.FormEvent) => {
     let currentToken = token;
 
     if (!currentToken) {
-      const authRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/guest`), {
+      const authRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-        });
+        body: JSON.stringify(body),
+      });
+      const authData = await authRes.json();
+      if (!authRes.ok) throw new Error(authData.error || "Failed to join as guest");
 
-    const authData = await authRes.json();
-    if (!authRes.ok) throw new Error(authData.error || "Failed to join as guest");
+      setAuth(authData.user, authData.token);
+      currentToken = authData.token;
+    }
 
-    setAuth(authData.user, authData.token);
-    currentToken = authData.token;
+    let extracted = joinUrl.trim();
+    if (joinUrl.includes("join/")) extracted = joinUrl.split("join/")[1]?.split("/")[0] || extracted;
+    else if (joinUrl.includes("room/")) extracted = joinUrl.split("room/")[1]?.split("/")[0] || extracted;
+
+    if (!extracted) throw new Error("Invalid code.");
+
+    const endpoint = extracted.length <= 10 ? `by-code/${extracted}` : extracted;
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms/${endpoint}`);
+    if (!res.ok) throw new Error("Room not found.");
+
+    const data = await res.json();
+    router.push(`/room/${data.room.id}`);
+  } catch (err: any) {
+    setError(err.message || "Failed to join room.");
+    setLoading(false);
   }
-
-      let extracted = joinUrl.trim();
-  if (joinUrl.includes("join/")) extracted = joinUrl.split("join/")[1]?.split("/")[0] || extracted;
-  else if (joinUrl.includes("room/")) extracted = joinUrl.split("room/")[1]?.split("/")[0] || extracted;
-
-  if (!extracted) throw new Error("Invalid code.");
-
-  const endpoint = extracted.length <= 10 ? `by-code/${extracted}` : extracted;
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms/${endpoint}`);
-  if (!res.ok) throw new Error("Room not found.");
-
-  const data = await res.json();
-  router.push(`/room/${data.room.id}`);
-} catch (err: any) {
-  setError(err.message || "Failed to join room.");
-  setLoading(false);
-}
-  };
+};
 
 return (
   <div className="h-screen overflow-hidden bg-[#060610] font-sans flex flex-col items-center justify-center relative">
