@@ -17,6 +17,7 @@ import authRouter from './routes/auth';
 import roomsRouter from './routes/rooms';
 import mediaRouter from './routes/media';
 import usersRouter from './routes/users';
+import playlistsRouter from './routes/playlists';
 import path from 'path';
 
 dotenv.config();
@@ -29,6 +30,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/rooms', roomsRouter);
 app.use('/api/media', mediaRouter);
 app.use('/api/users', usersRouter);
+app.use('/api/playlists', playlistsRouter);
 
 // Serve uploads statically
 app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
@@ -92,6 +94,12 @@ io.on('connection', (socket) => {
             }
             // Initialize in memory
             roomState = roomManager.createRoom(dbRoom.id, dbRoom.hostId);
+        }
+
+        // *** Room Capacity Limit: max 10 users ***
+        if (Object.keys(roomState.users).length >= 10) {
+            socket.emit('S2C_ROOM_FULL');
+            return;
         }
 
         // 2. Add user to room state
@@ -192,6 +200,18 @@ io.on('connection', (socket) => {
             timestamp: Date.now()
         });
     });
+
+    socket.on('C2S_SHARE_PLAYLIST', (playlist) => {
+        const roomId = socket.data.activeRoomId;
+        const user = socket.data.user;
+        if (!roomId || !user || !playlist) return;
+
+        io.to(roomId).emit('S2C_PLAYLIST_SHARED', {
+            username: user.name,
+            playlist,
+        });
+    });
+
 
     socket.on('C2S_EMOTE', (emoji) => {
         const roomId = socket.data.activeRoomId;

@@ -31,6 +31,19 @@ export interface UserState {
     status: 'SYNCED' | 'DRIFTING' | 'BUFFERING' | 'DISCONNECTED';
     lastPing: number;
 }
+export interface SharedTrack {
+    id: string;
+    title: string;
+    mediaId: string;
+    source: string;
+    duration?: number | null;
+    position: number;
+}
+export interface SharedPlaylist {
+    id: string;
+    name: string;
+    tracks: SharedTrack[];
+}
 export interface ServerToClientEvents {
     S2C_ROOM_STATE: (state: RoomState) => void;
     S2C_PLAYBACK_UPDATE: (data: {
@@ -48,6 +61,7 @@ export interface ServerToClientEvents {
     S2C_HOST_CHANGED: (hostId: string) => void;
     S2C_SYNC_PONG: (serverTime: number) => void;
     S2C_ERROR: (message: string) => void;
+    S2C_ROOM_FULL: () => void;
     S2C_CHAT_MESSAGE: (data: {
         id: string;
         userId?: string;
@@ -73,6 +87,7 @@ export interface ServerToClientEvents {
         senderId: string;
         candidate: any;
     }) => void;
+    S2C_PLAYLIST_SHARED: (data: { username: string; playlist: SharedPlaylist }) => void;
 }
 export interface ClientToServerEvents {
     C2S_SYNC_TIME: (clientSendTime: number) => void;
@@ -106,4 +121,5 @@ export interface ClientToServerEvents {
         targetUserId: string;
         candidate: any;
     }) => void;
+    C2S_SHARE_PLAYLIST: (playlist: SharedPlaylist) => void;
 }

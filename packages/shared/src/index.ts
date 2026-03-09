@@ -32,6 +32,22 @@ export interface UserState {
     lastPing: number;
 }
 
+// Playlist shared types
+export interface SharedTrack {
+    id: string;
+    title: string;
+    mediaId: string;
+    source: string;
+    duration?: number | null;
+    position: number;
+}
+
+export interface SharedPlaylist {
+    id: string;
+    name: string;
+    tracks: SharedTrack[];
+}
+
 // Server to Client Events
 export interface ServerToClientEvents {
     S2C_ROOM_STATE: (state: RoomState) => void;
@@ -42,11 +58,13 @@ export interface ServerToClientEvents {
     S2C_HOST_CHANGED: (hostId: string) => void;
     S2C_SYNC_PONG: (serverTime: number) => void;
     S2C_ERROR: (message: string) => void;
+    S2C_ROOM_FULL: () => void;
     S2C_CHAT_MESSAGE: (data: { id: string, userId?: string, name?: string, text?: string, timestamp?: number, type?: 'TEXT' | 'EMOJI' | 'GIF', gifUrl?: string }) => void;
     S2C_LOCAL_FILE_SELECTED: (data: { fileName: string, fileSize: number }) => void;
     S2C_WEBRTC_OFFER: (data: { senderId: string, offer: any }) => void;
     S2C_WEBRTC_ANSWER: (data: { senderId: string, answer: any }) => void;
     S2C_WEBRTC_ICE: (data: { senderId: string, candidate: any }) => void;
+    S2C_PLAYLIST_SHARED: (data: { username: string; playlist: SharedPlaylist }) => void;
 }
 
 // Client to Server Events
@@ -62,4 +80,5 @@ export interface ClientToServerEvents {
     C2S_WEBRTC_OFFER: (data: { targetUserId: string, offer: any }) => void;
     C2S_WEBRTC_ANSWER: (data: { targetUserId: string, answer: any }) => void;
     C2S_WEBRTC_ICE: (data: { targetUserId: string, candidate: any }) => void;
+    C2S_SHARE_PLAYLIST: (playlist: SharedPlaylist) => void;
 }

@@ -96,7 +96,7 @@ router.post('/register', async (req: Request, res: Response) => {
 });
 
 const LoginSchema = z.object({
-    email: z.string().email(),
+    identifier: z.string().min(1, 'Email or username is required'),
     password: z.string(),
 });
 
@@ -107,9 +107,17 @@ router.post('/login', async (req: Request, res: Response) => {
             return res.status(400).json({ error: parsed.error.issues });
         }
 
-        const { email, password } = parsed.data;
+        const { identifier, password } = parsed.data;
 
-        const user = await prisma.user.findUnique({ where: { email } });
+        // Try to find user by email first, then by username (name)
+        let user = await prisma.user.findUnique({ where: { email: identifier } });
+        if (!user) {
+            // Fall back to finding by name (case-insensitive)
+            user = await prisma.user.findFirst({
+                where: { name: { equals: identifier, mode: 'insensitive' }, isGuest: false }
+            });
+        }
+
         if (!user || user.isGuest || !user.password) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
