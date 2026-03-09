@@ -67,39 +67,39 @@ export default function LandingPage() {
           body = { name, email, password };
         }
 
-        const authRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/${endpoint}`), {
+        const authRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/${endpoint}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
 
-      const authData = await authRes.json();
-      if (!authRes.ok) throw new Error(authData.error?.[0]?.message || authData.error || "Authentication failed");
+        const authData = await authRes.json();
+        if (!authRes.ok) throw new Error(authData.error?.[0]?.message || authData.error || "Authentication failed");
 
-      setAuth(authData.user, authData.token);
-      currentToken = authData.token;
+        setAuth(authData.user, authData.token);
+        currentToken = authData.token;
 
-      if (authMode !== 'GUEST' && !roomName) {
-        setAuthMode('GUEST');
-        setLoading(false);
-        return;
+        if (authMode !== 'GUEST' && !roomName) {
+          setAuthMode('GUEST');
+          setLoading(false);
+          return;
+        }
       }
-    }
 
       if (roomName) {
-      const roomRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms`), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${currentToken}`,
+        const roomRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms`), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${currentToken}`,
           },
-    body: JSON.stringify({ name: roomName, isPrivate: false }),
+      body: JSON.stringify({ name: roomName, isPrivate: false }),
         });
-  const roomData = await roomRes.json();
-  if (!roomRes.ok) throw new Error(roomData.error || "Failed to create room");
-  router.push(`/room/${roomData.room.id}`);
-}
-    } catch (err: any) {
+    const roomData = await roomRes.json();
+    if (!roomRes.ok) throw new Error(roomData.error || "Failed to create room");
+    router.push(`/room/${roomData.room.id}`);
+  }
+} catch (err: any) {
   setError(err.message || "Something went wrong.");
   setLoading(false);
 }
