@@ -49,7 +49,7 @@ export default function SettingsPage() {
                 const formData = new FormData();
                 formData.append('avatar', avatarFile);
 
-                const uploadRes = await fetch("http://localhost:4000/api/users/me/avatar", {
+                const uploadRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me/avatar`, {
                     method: "POST",
                     headers: { Authorization: `Bearer ${token}` },
                     body: formData,
@@ -61,7 +61,7 @@ export default function SettingsPage() {
             }
 
             // 2. Update Profile Name & Bio
-            const profileRes = await fetch("http://localhost:4000/api/users/me", {
+            const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

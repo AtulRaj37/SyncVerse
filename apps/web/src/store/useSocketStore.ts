@@ -36,7 +36,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
         // Prevent duplicate connections
         if (get().socket) return;
 
-        const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io('http://localhost:4000', {
+        const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(process.env.NEXT_PUBLIC_API_URL!, {
             auth: { token },
             transports: ['websocket'],
         });

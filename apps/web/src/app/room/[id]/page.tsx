@@ -253,7 +253,7 @@ export default function RoomPage() {
 
         const fetchRoom = async () => {
             try {
-                const res = await fetch(`http://localhost:4000/api/rooms/${id}`, {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms/${id}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 

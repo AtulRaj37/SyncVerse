@@ -14,7 +14,7 @@ export default function JoinCodePage() {
 
         const checkRoom = async () => {
             try {
-                const res = await fetch(`http://localhost:4000/api/rooms/by-code/${code}`);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms/by-code/${code}`);
                 if (!res.ok) {
                     setStatus("error");
                     return;

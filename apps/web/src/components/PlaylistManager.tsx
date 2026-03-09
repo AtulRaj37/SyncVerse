@@ -12,7 +12,7 @@ interface PlaylistManagerProps {
     onPlayPlaylist: (playlist: SharedPlaylist) => void;
 }
 
-const API = "http://localhost:4000";
+const API = process.env.NEXT_PUBLIC_API_URL!;
 
 export function PlaylistManager({ inRoom = false, onClose, onPlayPlaylist }: PlaylistManagerProps) {
     const { token } = useUserStore();
