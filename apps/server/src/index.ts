@@ -48,7 +48,10 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
     }
 });
 
-const pubClient = createClient({ url: 'redis://localhost:6379' });
+const pubClient = createClient({
+    url: process.env.REDIS_URL
+});
+
 const subClient = pubClient.duplicate();
 
 Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
@@ -299,6 +302,6 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 4000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`SyncVerse server running on port ${PORT}`);
 });
