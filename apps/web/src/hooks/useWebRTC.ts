@@ -12,9 +12,13 @@ export const useWebRTC = () => {
     const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
 
     const peersRef = useRef<Map<string, RTCPeerConnection>>(new Map());
+    const pendingCandidates = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
 
     const rtcConfig = {
-        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:global.stun.twilio.com:3478' }
+        ]
     };
 
     const startScreenShare = async () => {
@@ -45,6 +49,7 @@ export const useWebRTC = () => {
         }
         peersRef.current.forEach(pc => pc.close());
         peersRef.current.clear();
+        pendingCandidates.current.clear();
         setRemoteStream(null);
     };
 
@@ -75,29 +80,68 @@ export const useWebRTC = () => {
     useEffect(() => {
         if (!socket) return;
 
+        const processIceQueue = async (senderId: string, pc: RTCPeerConnection) => {
+            const q = pendingCandidates.current.get(senderId);
+            if (q && q.length > 0) {
+                for (const c of q) {
+                    try {
+                        await pc.addIceCandidate(new RTCIceCandidate(c));
+                    } catch (e) {
+                        console.error("Failed to add queued ice candidate", e);
+                    }
+                }
+                pendingCandidates.current.delete(senderId);
+            }
+        };
+
         const handleOffer = async ({ senderId, offer }: any) => {
-            const pc = await createPeerConnection(senderId);
-            await pc.setRemoteDescription(new RTCSessionDescription(offer));
-            const answer = await pc.createAnswer();
-            await pc.setLocalDescription(answer);
-            socket.emit('C2S_WEBRTC_ANSWER', { targetUserId: senderId, answer });
+            let pc = peersRef.current.get(senderId);
+            if (!pc) {
+                pc = await createPeerConnection(senderId);
+            } else if (pc.signalingState !== "stable") {
+                console.warn(`Ignoring offer, PC in state: ${pc.signalingState}`);
+                return;
+            }
+
+            try {
+                await pc.setRemoteDescription(new RTCSessionDescription(offer));
+                await processIceQueue(senderId, pc);
+
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                socket.emit('C2S_WEBRTC_ANSWER', { targetUserId: senderId, answer });
+            } catch (error) {
+                console.error("Failed to handle WebRTC offer", error);
+            }
         };
 
         const handleAnswer = async ({ senderId, answer }: any) => {
             const pc = peersRef.current.get(senderId);
-            if (pc) {
-                await pc.setRemoteDescription(new RTCSessionDescription(answer));
+            if (pc && pc.signalingState === 'have-local-offer') {
+                try {
+                    await pc.setRemoteDescription(new RTCSessionDescription(answer));
+                    await processIceQueue(senderId, pc);
+                } catch (error) {
+                    console.error("Failed to handle WebRTC answer", error);
+                }
+            } else if (pc) {
+                console.warn(`Ignoring answer, PC in state: ${pc.signalingState}`);
             }
         };
 
         const handleIce = async ({ senderId, candidate }: any) => {
             const pc = peersRef.current.get(senderId);
-            if (pc && candidate) {
+            if (pc && pc.remoteDescription && pc.remoteDescription.type) {
                 try {
                     await pc.addIceCandidate(new RTCIceCandidate(candidate));
                 } catch (e) {
                     console.error("Error adding ice candidate", e);
                 }
+            } else {
+                // Queue the candidate until remote description is set
+                const q = pendingCandidates.current.get(senderId) || [];
+                q.push(candidate);
+                pendingCandidates.current.set(senderId, q);
             }
         };
 
@@ -127,6 +171,7 @@ export const useWebRTC = () => {
                 pc.close();
                 peersRef.current.delete(userId);
             }
+            pendingCandidates.current.delete(userId);
         };
 
         socket.on('S2C_USER_JOINED', handleUserJoined);

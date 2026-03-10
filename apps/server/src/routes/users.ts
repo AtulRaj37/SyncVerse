@@ -79,8 +79,10 @@ router.post('/me/avatar', verifyToken, upload.single('avatar'), async (req: Auth
         }
 
         const userId = req.user!.userId;
-        // The file is saved in uploads/avatars, so URL is /uploads/avatars/filename
-        const avatarUrl = `http://localhost:4000/uploads/avatars/${req.file.filename}`;
+        // The file is saved in uploads/avatars, dynamically construct URL for production / local
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+        const host = req.headers.host || 'localhost:4000';
+        const avatarUrl = `${protocol}://${host}/uploads/avatars/${req.file.filename}`;
 
         const updated = await prisma.user.update({
             where: { id: userId },

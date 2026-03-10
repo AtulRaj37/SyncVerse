@@ -27,6 +27,18 @@ import { DraggableChatButton } from "@/components/DraggableChatButton";
 import { MessageSquare, X, Link as LinkIcon, LogOut, User, Users, Settings, Check, ListMusic, Play, AlertTriangle, BookmarkPlus } from "lucide-react";
 import { SharedPlaylist } from "@syncverse/shared";
 
+const getAvatarUrlFull = (url?: string | null) => {
+    if (!url) return undefined;
+    if (url.startsWith('http://localhost:4000')) {
+        return url.replace('http://localhost:4000', process.env.NEXT_PUBLIC_API_URL || '');
+    }
+    // Handle relative uploads if any
+    if (url.startsWith('/uploads')) {
+        return `${process.env.NEXT_PUBLIC_API_URL}${url}`;
+    }
+    return url;
+};
+
 export default function RoomPage() {
     const { id } = useParams();
     const router = useRouter();
@@ -467,7 +479,7 @@ export default function RoomPage() {
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                         className="w-10 h-10 relative rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-sm font-bold text-white ring-2 ring-purple-500 hover:scale-105 shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all overflow-hidden"
                     >
-                        {avatarUrl ? <img src={avatarUrl} className="w-full h-full object-cover" /> : name?.charAt(0).toUpperCase()}
+                        {avatarUrl ? <img src={getAvatarUrlFull(avatarUrl)} className="w-full h-full object-cover" /> : name?.charAt(0).toUpperCase()}
                     </button>
 
                     {/* Profile Dropdown Menu */}
@@ -629,7 +641,7 @@ export default function RoomPage() {
                                         <div key={`fs-chat-${idx}`} className={`flex items-start gap-3 p-2 rounded-xl hover:bg-white/5 transition group`}>
                                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xs font-bold text-white shadow-lg overflow-hidden shrink-0 mt-0.5">
                                                 {msg.avatarUrl ? (
-                                                    <img src={msg.avatarUrl} alt={msg.name} className="w-full h-full object-cover" />
+                                                    <img src={getAvatarUrlFull(msg.avatarUrl)} alt={msg.name} className="w-full h-full object-cover" />
                                                 ) : (
                                                     msg.name ? msg.name.charAt(0).toUpperCase() : '?'
                                                 )}
@@ -966,7 +978,7 @@ export default function RoomPage() {
                                         <div className="relative">
                                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xs font-bold text-white shadow-lg overflow-hidden">
                                                 {user.profile.avatarUrl ? (
-                                                    <img src={user.profile.avatarUrl} alt={user.profile.name} className="w-full h-full object-cover" />
+                                                    <img src={getAvatarUrlFull(user.profile.avatarUrl)} alt={user.profile.name} className="w-full h-full object-cover" />
                                                 ) : (
                                                     user.profile.name.charAt(0).toUpperCase()
                                                 )}
@@ -990,7 +1002,7 @@ export default function RoomPage() {
                                                 <div className="absolute -top-6 left-3 p-1 bg-[#141419] rounded-full">
                                                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-sm font-bold text-white shadow-lg overflow-hidden">
                                                         {user.profile.avatarUrl ? (
-                                                            <img src={user.profile.avatarUrl} className="w-full h-full object-cover" alt="Avatar" />
+                                                            <img src={getAvatarUrlFull(user.profile.avatarUrl)} className="w-full h-full object-cover" alt="Avatar" />
                                                         ) : (
                                                             user.profile.name.charAt(0).toUpperCase()
                                                         )}
@@ -1045,7 +1057,7 @@ export default function RoomPage() {
                                             >
                                                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-sm font-bold text-white shadow-lg overflow-hidden shrink-0">
                                                     {msg.avatarUrl ? (
-                                                        <img src={msg.avatarUrl} alt={msg.name} className="w-full h-full object-cover" />
+                                                        <img src={getAvatarUrlFull(msg.avatarUrl)} alt={msg.name} className="w-full h-full object-cover" />
                                                     ) : (
                                                         msg.name ? msg.name.charAt(0).toUpperCase() : '?'
                                                     )}

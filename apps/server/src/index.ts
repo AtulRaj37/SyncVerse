@@ -340,47 +340,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('C2S_WEBRTC_OFFER', (data) => {
-        const roomId = socket.data.activeRoomId;
-        const senderId = socket.data.user?.userId;
-        if (!roomId || !senderId) return;
-
-        const room = roomManager.getRoom(roomId);
-        if (room && room.users[data.targetUserId]) {
-            socket.to(room.users[data.targetUserId].socketId).emit('S2C_WEBRTC_OFFER', {
-                senderId,
-                offer: data.offer
-            });
-        }
-    });
-
-    socket.on('C2S_WEBRTC_ANSWER', (data) => {
-        const roomId = socket.data.activeRoomId;
-        const senderId = socket.data.user?.userId;
-        if (!roomId || !senderId) return;
-
-        const room = roomManager.getRoom(roomId);
-        if (room && room.users[data.targetUserId]) {
-            socket.to(room.users[data.targetUserId].socketId).emit('S2C_WEBRTC_ANSWER', {
-                senderId,
-                answer: data.answer
-            });
-        }
-    });
-
-    socket.on('C2S_WEBRTC_ICE', (data) => {
-        const roomId = socket.data.activeRoomId;
-        const senderId = socket.data.user?.userId;
-        if (!roomId || !senderId) return;
-
-        const room = roomManager.getRoom(roomId);
-        if (room && room.users[data.targetUserId]) {
-            socket.to(room.users[data.targetUserId].socketId).emit('S2C_WEBRTC_ICE', {
-                senderId,
-                candidate: data.candidate
-            });
-        }
-    });
 
     socket.on('disconnect', () => {
         console.log(`Socket disconnected: ${socket.id}`);

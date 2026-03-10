@@ -6,6 +6,17 @@ import { useUserStore } from "@/store/useUserStore";
 import { motion } from "framer-motion";
 import { Camera, Save, ArrowLeft, User as UserIcon } from "lucide-react";
 
+const getAvatarUrlFull = (url?: string | null) => {
+    if (!url) return undefined;
+    if (url.startsWith('http://localhost:4000')) {
+        return url.replace('http://localhost:4000', process.env.NEXT_PUBLIC_API_URL || '');
+    }
+    if (url.startsWith('/uploads')) {
+        return `${process.env.NEXT_PUBLIC_API_URL}${url}`;
+    }
+    return url;
+};
+
 export default function SettingsPage() {
     const router = useRouter();
     const { id, name: storedName, bio: storedBio, avatarUrl: storedAvatar, token, isGuest, createdAt, setAuth } = useUserStore();
@@ -125,7 +136,7 @@ export default function SettingsPage() {
                         <div className="flex items-center gap-6 mb-8">
                             <div className="relative group cursor-pointer w-24 h-24 rounded-full overflow-hidden border-2 border-white/10 bg-neutral-800 shrink-0" onClick={() => fileInputRef.current?.click()}>
                                 {avatarPreview ? (
-                                    <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                                    <img src={getAvatarUrlFull(avatarPreview)} alt="Avatar" className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-600 to-blue-600 text-3xl font-bold text-white">
                                         {name.charAt(0).toUpperCase()}
@@ -202,7 +213,7 @@ export default function SettingsPage() {
                             <div className="absolute -top-12 left-4 p-1.5 bg-[#141419] rounded-full">
                                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-3xl font-bold text-white shadow-xl overflow-hidden">
                                     {avatarPreview ? (
-                                        <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
+                                        <img src={getAvatarUrlFull(avatarPreview)} alt="Preview" className="w-full h-full object-cover" />
                                     ) : (
                                         name.charAt(0).toUpperCase()
                                     )}
