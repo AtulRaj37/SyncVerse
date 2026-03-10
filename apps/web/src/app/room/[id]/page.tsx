@@ -234,6 +234,16 @@ export default function RoomPage() {
         }
     };
 
+    // Attach stream to video element when source is SCREEN
+    useEffect(() => {
+        if (roomState?.currentMedia?.source === 'SCREEN' && playerRef.current) {
+            const videoEl = playerRef.current as HTMLVideoElement;
+            if (videoEl && typeof videoEl.play === 'function') {
+                videoEl.srcObject = localStream || remoteStream || null;
+            }
+        }
+    }, [roomState?.currentMedia?.source, localStream, remoteStream]);
+
     const toggleMiniPlayer = () => {
         if (playerMode === 'FULLSCREEN') document.exitFullscreen();
         setPlayerMode(prev => prev === 'MINI_PLAYER' ? 'NORMAL' : 'MINI_PLAYER');
@@ -757,12 +767,7 @@ export default function RoomPage() {
                                     />
                                 ) : roomState.currentMedia.source === 'SCREEN' ? (
                                     <video
-                                        ref={(el) => {
-                                            if (el) {
-                                                el.srcObject = localStream || remoteStream || null;
-                                                playerRef.current = el as any;
-                                            }
-                                        }}
+                                        ref={playerRef}
                                         autoPlay
                                         playsInline
                                         muted={!!localStream} // Mute our own screen share to avoid echo
