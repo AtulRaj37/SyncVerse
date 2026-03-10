@@ -25,6 +25,7 @@ export class RoomManager {
             settings: {
                 djMode: false,
             },
+            activeQueue: null,
         };
 
         this.rooms.set(roomId, newRoom);

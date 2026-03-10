@@ -56,6 +56,7 @@ export interface ServerToClientEvents {
         updatedAt: number;
         playbackRate: number;
     }) => void;
+    S2C_USER_JOINED: (user: UserState) => void;
     S2C_USER_LEFT: (userId: string) => void;
     S2C_EMOTE: (data: {
         userId: string;

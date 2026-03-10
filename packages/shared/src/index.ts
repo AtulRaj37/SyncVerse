@@ -57,6 +57,7 @@ export interface SharedPlaylist {
 export interface ServerToClientEvents {
     S2C_ROOM_STATE: (state: RoomState) => void;
     S2C_PLAYBACK_UPDATE: (data: { status: RoomState['status'], currentTime: number, updatedAt: number, playbackRate: number }) => void;
+    S2C_USER_JOINED: (user: UserState) => void;
     S2C_USER_LEFT: (userId: string) => void;
     S2C_EMOTE: (data: { userId: string, emoji: string }) => void;
     S2C_HOST_CHANGED: (hostId: string) => void;

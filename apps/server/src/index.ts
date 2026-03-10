@@ -316,7 +316,7 @@ io.on('connection', (socket) => {
     });
 });
 
-const PORT = process.env.PORT || 4000;
+const PORT = parseInt(process.env.PORT || '4000', 10);
 
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`SyncVerse server running on port ${PORT}`);
