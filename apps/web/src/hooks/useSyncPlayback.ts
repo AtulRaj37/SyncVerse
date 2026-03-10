@@ -26,6 +26,9 @@ export const useSyncPlayback = (playerRef: React.RefObject<any>) => {
     // Seek lock — suppresses drift correction for SEEK_LOCK_DURATION_MS after any user seek
     const seekLockUntil = useRef<number>(0);
 
+    // Flag to prevent sending programmatic seeks back to the server
+    const isProgrammaticSeekRef = useRef(false);
+
     // Playback rate ref to avoid stale closure in setLocalPlaybackRate comparisons
     const localPlaybackRateRef = useRef(1.0);
 
@@ -75,6 +78,7 @@ export const useSyncPlayback = (playerRef: React.RefObject<any>) => {
                 if (absDrift > MAX_ALLOWED_DRIFT_SEC) {
                     // Hard seek — only for genuinely large drifts
                     console.log(`[Sync] Hard seek: drift=${drift.toFixed(3)}s → seekTo ${expectedTime.toFixed(3)}s`);
+                    isProgrammaticSeekRef.current = true;
                     if (typeof player.seekTo === 'function') {
                         player.seekTo(expectedTime, 'seconds');
                     } else {
@@ -139,6 +143,12 @@ export const useSyncPlayback = (playerRef: React.RefObject<any>) => {
     };
 
     const handleSeek = (seekTime: number) => {
+        if (isProgrammaticSeekRef.current) {
+            // This seek was triggered by our auto-sync logic. Consume the flag and DO NOT broadcast.
+            isProgrammaticSeekRef.current = false;
+            return;
+        }
+
         // Lock drift correction for long enough to survive the server round-trip
         seekLockUntil.current = Date.now() + SEEK_LOCK_DURATION_MS;
         sendMediaCommand('SEEK', seekTime);

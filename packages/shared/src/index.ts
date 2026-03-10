@@ -65,7 +65,7 @@ export interface ServerToClientEvents {
     S2C_SYNC_PONG: (serverTime: number) => void;
     S2C_ERROR: (message: string) => void;
     S2C_ROOM_FULL: () => void;
-    S2C_CHAT_MESSAGE: (data: { id: string, userId?: string, name?: string, text?: string, timestamp?: number, type?: 'TEXT' | 'EMOJI' | 'GIF', gifUrl?: string }) => void;
+    S2C_CHAT_MESSAGE: (data: { id: string, userId?: string, name?: string, avatarUrl?: string | null, text?: string, timestamp?: number, type?: 'TEXT' | 'EMOJI' | 'GIF', gifUrl?: string }) => void;
     S2C_LOCAL_FILE_SELECTED: (data: { fileName: string, fileSize: number }) => void;
     S2C_WEBRTC_OFFER: (data: { senderId: string, offer: any }) => void;
     S2C_WEBRTC_ANSWER: (data: { senderId: string, answer: any }) => void;
@@ -88,4 +88,5 @@ export interface ClientToServerEvents {
     C2S_WEBRTC_ANSWER: (data: { targetUserId: string, answer: any }) => void;
     C2S_WEBRTC_ICE: (data: { targetUserId: string, candidate: any }) => void;
     C2S_SHARE_PLAYLIST: (playlist: SharedPlaylist) => void;
+    C2S_TOGGLE_DJ_MODE: (djMode: boolean) => void;
 }

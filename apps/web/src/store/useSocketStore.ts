@@ -6,6 +6,7 @@ export interface ChatMessage {
     id?: string;
     userId: string;
     name: string;
+    avatarUrl?: string;
     text?: string;
     type?: 'TEXT' | 'GIF';
     gifUrl?: string;

@@ -10,26 +10,31 @@ import dynamic from "next/dynamic";
 import { HeroForm } from "@/components/HeroForm";
 
 const Galaxy = dynamic(() => import("@/components/Galaxy"), { ssr: false }) as any;
+import { useDevicePerformance } from "@/hooks/useDevicePerformance";
 
 export default function LandingPage() {
+  const { isLowEnd } = useDevicePerformance();
+
   return (
     <div className="h-[100dvh] overflow-hidden bg-[#060610] font-sans flex flex-col items-center justify-center relative">
 
       {/* Galaxy Backgroundddd — window-level mouse events are listened to inside Galaxy.jsx */}
       <div className="fixed inset-0 z-0" style={{ background: '#060610' }}>
-        <Galaxy
-          starSpeed={0}
-          density={1.7}
-          hueShift={140}
-          speed={0.7}
-          glowIntensity={0.3}
-          saturation={0.8}
-          mouseRepulsion={true}
-          repulsionStrength={0.5}
-          twinkleIntensity={0.55}
-          rotationSpeed={0.1}
-          transparent={true}
-        />
+        {!isLowEnd && (
+          <Galaxy
+            starSpeed={0}
+            density={1.7}
+            hueShift={140}
+            speed={0.7}
+            glowIntensity={0.3}
+            saturation={0.8}
+            mouseRepulsion={true}
+            repulsionStrength={0.5}
+            twinkleIntensity={0.55}
+            rotationSpeed={0.1}
+            transparent={true}
+          />
+        )}
       </div>
 
       {/* All content in one screen but can scroll if needed */}

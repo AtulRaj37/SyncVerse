@@ -141,7 +141,10 @@ io.on('connection', (socket) => {
         const room = roomManager.getRoom(roomId);
         if (!room) return;
 
-        // Everyone has permission to seek and play/pause
+        // Enforce DJ Mode (Host Only Controls)
+        if (room.settings.djMode && room.hostId !== userId) {
+            return; // Ignore command from non-host
+        }
 
         const statusMap = {
             'PLAY': 'PLAYING',
@@ -169,7 +172,10 @@ io.on('connection', (socket) => {
         const room = roomManager.getRoom(roomId);
         if (!room) return;
 
-        // All users have permission to change media
+        // Enforce DJ Mode (Host Only Controls)
+        if (room.settings.djMode && room.hostId !== userId) {
+            return; // Ignore command from non-host
+        }
 
         roomManager.updateMedia(roomId, mediaId, source);
 
@@ -201,6 +207,7 @@ io.on('connection', (socket) => {
             id: data.id || Math.random().toString(36).substr(2, 9),
             userId: user.userId,
             name: user.name,
+            avatarUrl: user.avatarUrl,
             text: data.text ? data.text.trim().substring(0, 500) : undefined,
             type: data.type || 'TEXT',
             gifUrl: data.gifUrl,
@@ -232,12 +239,56 @@ io.on('connection', (socket) => {
         });
     });
 
+    // --- WebRTC Signaling for Screen Share and Voice/Video ---
+    socket.on('C2S_WEBRTC_OFFER', ({ targetUserId, offer }) => {
+        const roomId = socket.data.activeRoomId;
+        const senderId = socket.data.user?.userId;
+        if (!roomId || !senderId || !targetUserId) return;
+
+        const room = roomManager.getRoom(roomId);
+        const targetSocketId = room?.users[targetUserId]?.socketId;
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('S2C_WEBRTC_OFFER', { senderId, offer });
+        }
+    });
+
+    socket.on('C2S_WEBRTC_ANSWER', ({ targetUserId, answer }) => {
+        const roomId = socket.data.activeRoomId;
+        const senderId = socket.data.user?.userId;
+        if (!roomId || !senderId || !targetUserId) return;
+
+        const room = roomManager.getRoom(roomId);
+        const targetSocketId = room?.users[targetUserId]?.socketId;
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('S2C_WEBRTC_ANSWER', { senderId, answer });
+        }
+    });
+
+    socket.on('C2S_WEBRTC_ICE', ({ targetUserId, candidate }) => {
+        const roomId = socket.data.activeRoomId;
+        const senderId = socket.data.user?.userId;
+        if (!roomId || !senderId || !targetUserId) return;
+
+        const room = roomManager.getRoom(roomId);
+        const targetSocketId = room?.users[targetUserId]?.socketId;
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('S2C_WEBRTC_ICE', { senderId, candidate });
+        }
+    });
+
+
     socket.on('C2S_UPDATE_QUEUE', (queue) => {
         const roomId = socket.data.activeRoomId;
-        if (!roomId) return;
+        const userId = socket.data.user?.userId;
+        if (!roomId || !userId) return;
 
         const room = roomManager.getRoom(roomId);
         if (room) {
+            // Enforce DJ Mode
+            if (room.settings.djMode && room.hostId !== userId) {
+                return;
+            }
+
             room.activeQueue = queue;
             io.to(roomId).emit('S2C_QUEUE_UPDATE', queue);
             io.to(roomId).emit('S2C_ROOM_STATE', room);
@@ -257,6 +308,18 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('S2C_LOCAL_FILE_SELECTED', data);
         if (room) {
             io.to(roomId).emit('S2C_ROOM_STATE', room);
+        }
+    });
+
+    socket.on('C2S_TOGGLE_DJ_MODE', (djMode: boolean) => {
+        const roomId = socket.data.activeRoomId;
+        const userId = socket.data.user?.userId;
+        if (!roomId || !userId) return;
+
+        const room = roomManager.getRoom(roomId);
+        if (room && room.hostId === userId) {
+            room.settings.djMode = djMode;
+            io.to(roomId).emit('S2C_ROOM_STATE', roomManager.getRoom(roomId)!);
         }
     });
 

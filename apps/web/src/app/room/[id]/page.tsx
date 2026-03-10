@@ -7,6 +7,7 @@ import { useUserStore } from "@/store/useUserStore";
 import { useSocketStore } from "@/store/useSocketStore";
 import { useSyncPlayback } from "@/hooks/useSyncPlayback";
 import { useWebRTC } from "@/hooks/useWebRTC";
+import { useDevicePerformance } from "@/hooks/useDevicePerformance";
 import dynamic from "next/dynamic";
 
 const Player = dynamic(() => import("react-player/lazy"), { ssr: false }) as any;
@@ -34,7 +35,10 @@ export default function RoomPage() {
     const [error, setError] = useState("");
     const [roomData, setRoomData] = useState<any>(null);
 
-    const { connect, disconnect, roomState, isConnected, chatMessages, sendChatMessage, sendEmote, changeMedia, roomFull, sharedPlaylist, clearSharedPlaylist, updateQueue, localFileUrl } = useSocketStore();
+    const { isLowEnd } = useDevicePerformance();
+
+    const { socket, connect, disconnect, roomState, isConnected, chatMessages, sendChatMessage, sendEmote, changeMedia, roomFull, sharedPlaylist, clearSharedPlaylist, updateQueue, localFileUrl } = useSocketStore();
+
     const { localStream, remoteStream, startScreenShare, stopScreenShare } = useWebRTC();
 
     const playerRef = useRef<any>(null);
@@ -500,6 +504,24 @@ export default function RoomPage() {
                                     </button>
                                 </div>
 
+                                {/* Host Only Controls toggle */}
+                                {roomState?.hostId === currentUserId && (
+                                    <div className="px-3 py-2 border-t border-white/5 hover:bg-white/5 transition-colors cursor-pointer w-full text-left flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            id="djModeToggle"
+                                            checked={roomState?.settings?.djMode || false}
+                                            onChange={(e) => {
+                                                if (socket) {
+                                                    socket.emit('C2S_TOGGLE_DJ_MODE', e.target.checked);
+                                                }
+                                            }}
+                                            className="w-3 h-3 rounded bg-neutral-900 border-neutral-600 text-purple-600 focus:ring-purple-600 cursor-pointer"
+                                        />
+                                        <label htmlFor="djModeToggle" className="text-xs text-neutral-300 cursor-pointer flex-1">Host Controls Only</label>
+                                    </div>
+                                )}
+
                                 {/* Developer Credit Footer */}
                                 <div className="px-3 py-2 border-t border-white/5 bg-black/40 text-center flex items-center justify-center gap-1.5 backdrop-blur-md">
                                     <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
@@ -519,20 +541,22 @@ export default function RoomPage() {
 
                 {/* LightRays Background */}
                 <div className="fixed inset-0 z-0 pointer-events-none">
-                    <LightRays
-                        raysOrigin="top-center"
-                        raysColor="#ffffff"
-                        raysSpeed={1}
-                        lightSpread={1}
-                        rayLength={1.4}
-                        pulsating={false}
-                        fadeDistance={0.8}
-                        saturation={1.7}
-                        followMouse={true}
-                        mouseInfluence={0.15}
-                        noiseAmount={0}
-                        distortion={0}
-                    />
+                    {!isLowEnd && (
+                        <LightRays
+                            raysOrigin="top-center"
+                            raysColor="#ffffff"
+                            raysSpeed={1}
+                            lightSpread={1}
+                            rayLength={1.4}
+                            pulsating={false}
+                            fadeDistance={0.8}
+                            saturation={1.7}
+                            followMouse={true}
+                            mouseInfluence={0.15}
+                            noiseAmount={0}
+                            distortion={0}
+                        />
+                    )}
                 </div>
 
                 {/* Media Player Area */}
@@ -605,11 +629,16 @@ export default function RoomPage() {
                                     return (
                                         <div key={`fs-chat-${idx}`} className={`flex items-start gap-3 p-2 rounded-xl hover:bg-white/5 transition group`}>
                                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xs font-bold text-white shadow-lg overflow-hidden shrink-0 mt-0.5">
-                                                {msg.name ? msg.name.charAt(0).toUpperCase() : '?'}
+                                                {msg.avatarUrl ? (
+                                                    <img src={msg.avatarUrl} alt={msg.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    msg.name ? msg.name.charAt(0).toUpperCase() : '?'
+                                                )}
                                             </div>
                                             <div className="flex flex-col flex-1 min-w-0">
                                                 <div className="flex items-baseline gap-2 mb-0.5">
                                                     <span className="text-xs font-semibold text-white">{msg.name}</span>
+                                                    {roomState?.hostId === msg.userId && <span className="text-[8px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white px-1 py-0.5 rounded shadow-sm shrink-0">HOST</span>}
                                                     <span className="text-[9px] text-neutral-500">{time}</span>
                                                 </div>
                                                 {msg.type === 'GIF' && msg.gifUrl ? (
@@ -628,6 +657,18 @@ export default function RoomPage() {
                                 <div ref={chatEndRef} />
                             </div>
                             <div className="p-3 border-t border-white/10 shrink-0 relative">
+                                {/* Quick Reactions Bar */}
+                                <div className="flex justify-center gap-3 mb-3">
+                                    {['❤️', '😂', '🔥', '😮', '👏'].map(emoji => (
+                                        <button
+                                            key={`fs-emote-${emoji}`}
+                                            onClick={() => sendEmote(emoji)}
+                                            className="text-lg hover:scale-125 hover:-translate-y-1 transition-all active:scale-95"
+                                        >
+                                            {emoji}
+                                        </button>
+                                    ))}
+                                </div>
                                 {showEmojiPicker && (
                                     <div className="absolute bottom-full right-0 mb-2 z-[70]">
                                         <Picker data={data} onEmojiSelect={(emoji: any) => {
@@ -1004,11 +1045,16 @@ export default function RoomPage() {
                                                 className="flex items-start gap-3 p-2 rounded-xl hover:bg-white/5 transition group"
                                             >
                                                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-sm font-bold text-white shadow-lg overflow-hidden shrink-0">
-                                                    {msg.name ? msg.name.charAt(0).toUpperCase() : '?'}
+                                                    {msg.avatarUrl ? (
+                                                        <img src={msg.avatarUrl} alt={msg.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        msg.name ? msg.name.charAt(0).toUpperCase() : '?'
+                                                    )}
                                                 </div>
                                                 <div className="flex flex-col flex-1 min-w-0">
                                                     <div className="flex items-baseline gap-2 mb-1">
                                                         <span className="text-sm font-semibold text-white">{msg.name}</span>
+                                                        {roomState?.hostId === msg.userId && <span className="text-[9px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white px-1.5 py-0.5 rounded shadow-sm shrink-0">HOST</span>}
                                                         <span className="text-[10px] text-neutral-500">{time}</span>
                                                     </div>
                                                     {msg.type === 'GIF' && msg.gifUrl ? (
@@ -1031,6 +1077,19 @@ export default function RoomPage() {
                     </div>
 
                     <div className="px-3 py-3 border-t border-white/10 relative shrink-0">
+                        {/* Quick Reactions Bar */}
+                        <div className="flex justify-center gap-4 mb-3">
+                            {['❤️', '😂', '🔥', '😮', '👏'].map(emoji => (
+                                <button
+                                    key={`emote-${emoji}`}
+                                    onClick={() => sendEmote(emoji)}
+                                    className="text-xl hover:scale-125 hover:-translate-y-1 transition-all duration-200 active:scale-95"
+                                >
+                                    {emoji}
+                                </button>
+                            ))}
+                        </div>
+
                         {showEmojiPicker && (
                             <div className="absolute bottom-full right-4 mb-2 z-[70] max-h-64 sm:max-h-none overflow-y-auto custom-scrollbar rounded-xl">
                                 <Picker data={data} onEmojiSelect={(emoji: any) => {
