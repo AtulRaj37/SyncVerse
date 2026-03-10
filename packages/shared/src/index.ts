@@ -22,6 +22,11 @@ export interface RoomState {
     settings: {
         djMode: boolean;
     };
+
+    activeQueue: {
+        playlist: SharedPlaylist;
+        trackIndex: number;
+    } | null;
 }
 
 export interface UserState {
@@ -52,10 +57,10 @@ export interface SharedPlaylist {
 export interface ServerToClientEvents {
     S2C_ROOM_STATE: (state: RoomState) => void;
     S2C_PLAYBACK_UPDATE: (data: { status: RoomState['status'], currentTime: number, updatedAt: number, playbackRate: number }) => void;
-    S2C_USER_JOINED: (user: UserState) => void;
     S2C_USER_LEFT: (userId: string) => void;
     S2C_EMOTE: (data: { userId: string, emoji: string }) => void;
     S2C_HOST_CHANGED: (hostId: string) => void;
+    S2C_QUEUE_UPDATE: (queue: { playlist: SharedPlaylist, trackIndex: number } | null) => void;
     S2C_SYNC_PONG: (serverTime: number) => void;
     S2C_ERROR: (message: string) => void;
     S2C_ROOM_FULL: () => void;
@@ -78,6 +83,7 @@ export interface ClientToServerEvents {
     C2S_CHANGE_MEDIA: (mediaId: string, source: 'YOUTUBE' | 'SOUNDCLOUD' | 'LOCAL' | 'SCREEN') => void;
     C2S_LOCAL_FILE_SELECTED: (data: { fileName: string, fileSize: number }) => void;
     C2S_WEBRTC_OFFER: (data: { targetUserId: string, offer: any }) => void;
+    C2S_UPDATE_QUEUE: (queue: { playlist: SharedPlaylist, trackIndex: number } | null) => void;
     C2S_WEBRTC_ANSWER: (data: { targetUserId: string, answer: any }) => void;
     C2S_WEBRTC_ICE: (data: { targetUserId: string, candidate: any }) => void;
     C2S_SHARE_PLAYLIST: (playlist: SharedPlaylist) => void;

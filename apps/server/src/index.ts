@@ -52,6 +52,10 @@ const pubClient = createClient({
     url: process.env.REDIS_URL
 });
 
+pubClient.on("error", (err) => {
+    console.error("Redis error:", err);
+});
+
 const subClient = pubClient.duplicate();
 
 Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
@@ -228,6 +232,18 @@ io.on('connection', (socket) => {
         });
     });
 
+    socket.on('C2S_UPDATE_QUEUE', (queue) => {
+        const roomId = socket.data.activeRoomId;
+        if (!roomId) return;
+
+        const room = roomManager.getRoom(roomId);
+        if (room) {
+            room.activeQueue = queue;
+            io.to(roomId).emit('S2C_QUEUE_UPDATE', queue);
+            io.to(roomId).emit('S2C_ROOM_STATE', room);
+        }
+    });
+
     socket.on('C2S_LOCAL_FILE_SELECTED', (data) => {
         const roomId = socket.data.activeRoomId;
         if (!roomId) return;
@@ -302,6 +318,6 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 4000;
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`SyncVerse server running on port ${PORT}`);
 });

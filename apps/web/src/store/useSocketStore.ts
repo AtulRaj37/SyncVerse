@@ -1,11 +1,14 @@
 import { create } from 'zustand';
 import { io, Socket } from 'socket.io-client';
-import { RoomState, ServerToClientEvents, ClientToServerEvents, UserState } from '@syncverse/shared';
+import { RoomState, ServerToClientEvents, ClientToServerEvents, UserState, SharedPlaylist } from '@syncverse/shared';
 
 export interface ChatMessage {
+    id?: string;
     userId: string;
     name: string;
-    text: string;
+    text?: string;
+    type?: 'TEXT' | 'GIF';
+    gifUrl?: string;
     timestamp: number;
 }
 
@@ -15,12 +18,16 @@ interface SocketStore {
     roomState: RoomState | null;
     chatMessages: ChatMessage[];
     error: string | null;
+    roomFull: boolean;
+    sharedPlaylist: { username: string; playlist: SharedPlaylist } | null;
 
     connect: (token: string, roomId: string, profile: UserState['profile']) => void;
     disconnect: () => void;
+    clearSharedPlaylist: () => void;
+    updateQueue: (queue: { playlist: SharedPlaylist, trackIndex: number } | null) => void;
     sendMediaCommand: (command: 'PLAY' | 'PAUSE' | 'SEEK', time: number) => void;
     reportState: (currentTime: number, status: 'SYNCED' | 'DRIFTING' | 'BUFFERING') => void;
-    sendChatMessage: (text: string) => void;
+    sendChatMessage: (data: { text?: string; type?: 'TEXT' | 'GIF' | 'EMOJI'; gifUrl?: string }) => void;
     sendEmote: (emoji: string) => void;
     changeMedia: (mediaId: string, source: 'YOUTUBE' | 'SOUNDCLOUD' | 'LOCAL') => void;
 }
@@ -31,6 +38,8 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     roomState: null,
     chatMessages: [],
     error: null,
+    roomFull: false,
+    sharedPlaylist: null,
 
     connect: (token, roomId, profile) => {
         // Prevent duplicate connections
@@ -58,9 +67,26 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
             set({ error: msg });
         });
 
+        socket.on('S2C_ROOM_FULL', () => {
+            set({ roomFull: true });
+        });
+
         // Handle full state dump (on join)
         socket.on('S2C_ROOM_STATE', (state) => {
             set({ roomState: state });
+        });
+
+        // Handle queue updates dynamically
+        socket.on('S2C_QUEUE_UPDATE', (queue) => {
+            set((state) => {
+                if (!state.roomState) return state;
+                return {
+                    roomState: {
+                        ...state.roomState,
+                        activeQueue: queue
+                    }
+                };
+            });
         });
 
         // Handle playback changes
@@ -110,7 +136,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
 
         socket.on('S2C_CHAT_MESSAGE', (msg) => {
             set((state) => ({
-                chatMessages: [...state.chatMessages, msg]
+                chatMessages: [...state.chatMessages, msg as unknown as ChatMessage]
             }));
         });
 
@@ -124,7 +150,18 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
         const { socket } = get();
         if (socket) {
             socket.disconnect();
-            set({ socket: null, isConnected: false, roomState: null });
+            set({ socket: null, isConnected: false, roomState: null, roomFull: false });
+        }
+    },
+
+    clearSharedPlaylist: () => {
+        set({ sharedPlaylist: null });
+    },
+
+    updateQueue: (queue) => {
+        const { socket } = get();
+        if (socket && socket.connected) {
+            socket.emit('C2S_UPDATE_QUEUE', queue);
         }
     },
 
@@ -142,10 +179,10 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
         }
     },
 
-    sendChatMessage: (text) => {
+    sendChatMessage: (data) => {
         const { socket } = get();
         if (socket && socket.connected) {
-            socket.emit('C2S_CHAT_MESSAGE', text);
+            socket.emit('C2S_CHAT_MESSAGE', data);
         }
     },
 

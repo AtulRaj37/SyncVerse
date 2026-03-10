@@ -1,5 +1,5 @@
 import { Renderer, Program, Mesh, Color, Triangle } from 'ogl';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, memo } from 'react';
 
 const vertexShader = `
 attribute vec2 uv;
@@ -169,7 +169,7 @@ void main() {
 }
 `;
 
-export default function Galaxy({
+const Galaxy = memo(function Galaxy({
   focal = [0.5, 0.5],
   rotation = [1.0, 0.0],
   starSpeed = 0.5,
@@ -212,10 +212,12 @@ export default function Galaxy({
     }
 
     let program;
+    let bounds = ctn.getBoundingClientRect();
 
     function resize() {
       const scale = 1;
-      renderer.setSize(ctn.offsetWidth * scale, ctn.offsetHeight * scale);
+      bounds = ctn.getBoundingClientRect();
+      renderer.setSize(bounds.width * scale, bounds.height * scale);
       if (program) {
         program.uniforms.uResolution.value = new Color(
           gl.canvas.width,
@@ -283,9 +285,9 @@ export default function Galaxy({
     ctn.appendChild(gl.canvas);
 
     function handleMouseMove(e) {
-      const rect = ctn.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width;
-      const y = 1.0 - (e.clientY - rect.top) / rect.height;
+      if (!bounds) return;
+      const x = (e.clientX - bounds.left) / bounds.width;
+      const y = 1.0 - (e.clientY - bounds.top) / bounds.height;
       targetMousePos.current = { x, y };
       targetMouseActive.current = 1.0;
     }
@@ -311,8 +313,10 @@ export default function Galaxy({
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
   }, [
-    focal,
-    rotation,
+    focal[0],
+    focal[1],
+    rotation[0],
+    rotation[1],
     starSpeed,
     density,
     hueShift,
@@ -330,4 +334,6 @@ export default function Galaxy({
   ]);
 
   return <div ref={ctnDom} className="w-full h-full relative" {...rest} />;
-}
+});
+
+export default Galaxy;

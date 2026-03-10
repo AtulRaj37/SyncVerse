@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { SharedPlaylist } from "@syncverse/shared";
 import {
     X, SkipBack, SkipForward, Shuffle, Repeat, Repeat1,
-    ListMusic, Music2, ChevronDown
+    ListMusic, Music2, ChevronDown, GripVertical
 } from "lucide-react";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 
 interface QueuePanelProps {
     playlist: SharedPlaylist;
@@ -18,6 +19,7 @@ interface QueuePanelProps {
     onNext: () => void;
     onToggleShuffle: () => void;
     onToggleRepeat: () => void;
+    onReorder: (sourceIndex: number, destinationIndex: number) => void;
 }
 
 export function QueuePanel({
@@ -31,6 +33,7 @@ export function QueuePanel({
     onNext,
     onToggleShuffle,
     onToggleRepeat,
+    onReorder,
 }: QueuePanelProps) {
     const RepeatIcon = repeatMode === "ONE" ? Repeat1 : Repeat;
 
@@ -93,59 +96,91 @@ export function QueuePanel({
             </div>
 
             {/* Track List */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar py-2">
-                {playlist.tracks.map((track, i) => {
-                    const isCurrent = i === currentIndex;
-                    return (
-                        <motion.button
-                            key={track.id}
-                            initial={false}
-                            onClick={() => onJumpTo(i)}
-                            className={`w-full flex items-center gap-3 px-4 py-2.5 transition-all text-left hover:bg-white/5 ${isCurrent ? "bg-purple-500/15" : ""}`}
+            <DragDropContext onDragEnd={(result: DropResult) => {
+                if (!result.destination) return;
+                if (result.destination.index === result.source.index) return;
+                onReorder(result.source.index, result.destination.index);
+            }}>
+                <Droppable droppableId="queue-list">
+                    {(provided) => (
+                        <div
+                            className="flex-1 overflow-y-auto custom-scrollbar py-2"
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}
                         >
-                            {/* Number / Playing indicator */}
-                            <div className="w-6 flex items-center justify-center flex-shrink-0">
-                                {isCurrent ? (
-                                    <div className="flex gap-0.5 items-end h-4">
-                                        {[0, 1, 2].map((j) => (
-                                            <motion.span
-                                                key={j}
-                                                className="w-0.5 bg-purple-400 rounded-full"
-                                                animate={{ height: ["40%", "100%", "40%"] }}
-                                                transition={{ duration: 0.8, repeat: Infinity, delay: j * 0.2, ease: "easeInOut" }}
-                                                style={{ display: "block" }}
-                                            />
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <span className="text-neutral-600 text-xs">{i + 1}</span>
-                                )}
-                            </div>
+                            {playlist.tracks.map((track, i) => {
+                                const isCurrent = i === currentIndex;
+                                return (
+                                    <Draggable key={track.id} draggableId={track.id} index={i}>
+                                        {(provided, snapshot) => (
+                                            <div
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                className={`w-full flex items-center gap-1 px-2 py-1.5 transition-all text-left ${snapshot.isDragging ? "bg-purple-900/50 shadow-2xl z-50 rounded-xl ring-1 ring-purple-500" : "hover:bg-white/5"
+                                                    } ${isCurrent && !snapshot.isDragging ? "bg-purple-500/15" : ""}`}
+                                            >
+                                                {/* Drag Handle */}
+                                                <div
+                                                    {...provided.dragHandleProps}
+                                                    className="p-2 text-neutral-600 hover:text-white cursor-grab active:cursor-grabbing flex-shrink-0 touch-none"
+                                                >
+                                                    <GripVertical size={14} />
+                                                </div>
 
-                            {/* Track icon */}
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isCurrent ? "bg-purple-500/30" : "bg-white/5"
-                                }`}>
-                                <Music2 size={13} className={isCurrent ? "text-purple-400" : "text-neutral-500"} />
-                            </div>
+                                                <button
+                                                    onClick={() => onJumpTo(i)}
+                                                    className="flex-1 flex items-center gap-3 text-left min-w-0 py-1"
+                                                >
+                                                    {/* Number / Playing indicator */}
+                                                    <div className="w-6 flex items-center justify-center flex-shrink-0">
+                                                        {isCurrent ? (
+                                                            <div className="flex gap-0.5 items-end h-4">
+                                                                {[0, 1, 2].map((j) => (
+                                                                    <motion.span
+                                                                        key={j}
+                                                                        className="w-0.5 bg-purple-400 rounded-full"
+                                                                        animate={{ height: ["40%", "100%", "40%"] }}
+                                                                        transition={{ duration: 0.8, repeat: Infinity, delay: j * 0.2, ease: "easeInOut" }}
+                                                                        style={{ display: "block" }}
+                                                                    />
+                                                                ))}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-neutral-600 text-xs">{i + 1}</span>
+                                                        )}
+                                                    </div>
 
-                            {/* Info */}
-                            <div className="flex-1 min-w-0">
-                                <p className={`text-sm font-medium truncate ${isCurrent ? "text-purple-300" : "text-white"}`}>
-                                    {track.title}
-                                </p>
-                                <p className="text-neutral-600 text-xs truncate">{track.source}</p>
-                            </div>
+                                                    {/* Track icon */}
+                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isCurrent ? "bg-purple-500/30" : "bg-white/5"
+                                                        }`}>
+                                                        <Music2 size={13} className={isCurrent ? "text-purple-400" : "text-neutral-500"} />
+                                                    </div>
 
-                            {/* Playing badge */}
-                            {isCurrent && (
-                                <span className="text-[9px] font-bold uppercase tracking-wider text-purple-400 bg-purple-500/20 px-1.5 py-0.5 rounded flex-shrink-0">
-                                    Now Playing
-                                </span>
-                            )}
-                        </motion.button>
-                    );
-                })}
-            </div>
+                                                    {/* Info */}
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className={`text-sm font-medium truncate ${isCurrent ? "text-purple-300" : "text-white"}`}>
+                                                            {track.title}
+                                                        </p>
+                                                        <p className="text-neutral-600 text-xs truncate">{track.source}</p>
+                                                    </div>
+
+                                                    {/* Playing badge */}
+                                                    {isCurrent && (
+                                                        <span className="text-[9px] font-bold uppercase tracking-wider text-purple-400 bg-purple-500/20 px-1.5 py-0.5 rounded flex-shrink-0 mr-3">
+                                                            Now Playing
+                                                        </span>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </Draggable>
+                                );
+                            })}
+                            {provided.placeholder}
+                        </div>
+                    )}
+                </Droppable>
+            </DragDropContext>
         </motion.div>
     );
 }

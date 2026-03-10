@@ -32,7 +32,7 @@ export default function RoomPage() {
     const [error, setError] = useState("");
     const [roomData, setRoomData] = useState<any>(null);
 
-    const { connect, disconnect, roomState, isConnected, chatMessages, sendChatMessage, sendEmote, localFileUrl, roomFull, sharedPlaylist, clearSharedPlaylist, changeMedia } = useSocketStore();
+    const { connect, disconnect, roomState, isConnected, chatMessages, sendChatMessage, sendEmote, changeMedia, roomFull, sharedPlaylist, clearSharedPlaylist, updateQueue } = useSocketStore();
     const { localStream, remoteStream, startScreenShare, stopScreenShare } = useWebRTC();
 
     const playerRef = useRef<any>(null);
@@ -47,8 +47,8 @@ export default function RoomPage() {
 
     // Playlist / Queue state
     const [showPlaylistManager, setShowPlaylistManager] = useState(false);
-    const [playlistQueue, setPlaylistQueue] = useState<SharedPlaylist | null>(null);
-    const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+    const playlistQueue = roomState?.activeQueue?.playlist || null;
+    const currentTrackIndex = roomState?.activeQueue?.trackIndex || 0;
     const [showQueue, setShowQueue] = useState(false);
     const [shuffle, setShuffle] = useState(false);
     const [repeatMode, setRepeatMode] = useState<"NONE" | "ONE" | "ALL">("NONE");
@@ -100,7 +100,7 @@ export default function RoomPage() {
     const handleTrackPlay = (playlist: SharedPlaylist, index: number) => {
         const track = playlist.tracks[index];
         if (!track) return;
-        setCurrentTrackIndex(index);
+        updateQueue({ playlist, trackIndex: index });
         changeMedia(track.mediaId, track.source as any);
     };
 
@@ -121,8 +121,7 @@ export default function RoomPage() {
                 handleTrackPlay(playlistQueue, 0);
             } else {
                 // Reached end of playlist
-                setPlaylistQueue(null);
-                setCurrentTrackIndex(0);
+                updateQueue(null);
             }
         }
     };
@@ -450,6 +449,16 @@ export default function RoomPage() {
                         <ThemeToggle />
                     </div>
 
+                    {!useUserStore.getState().isGuest && (
+                        <button
+                            onClick={() => setShowPlaylistManager(true)}
+                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-purple-600/30 text-white text-sm font-bold rounded-xl transition-colors border border-white/10 shadow-[0_4px_10px_rgba(0,0,0,0.5)] whitespace-nowrap"
+                        >
+                            <ListMusic size={16} className="text-purple-400" />
+                            <span>Playlists</span>
+                        </button>
+                    )}
+
                     {/* User Profile Dropdown Toggle */}
                     <button
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -478,9 +487,6 @@ export default function RoomPage() {
                                         </button>
                                     ) : (
                                         <>
-                                            <button onClick={() => { setShowPlaylistManager(true); setIsMenuOpen(false); }} className="w-full text-left px-3 py-2 text-xs text-neutral-300 hover:bg-white/5 rounded-lg flex items-center gap-2 transition-colors">
-                                                <ListMusic size={14} /> Playlists
-                                            </button>
                                             <button onClick={() => router.push('/settings')} className="w-full text-left px-3 py-2 text-xs text-neutral-300 hover:bg-white/5 rounded-lg flex items-center gap-2 transition-colors">
                                                 <Settings size={14} /> Settings
                                             </button>
@@ -698,11 +704,12 @@ export default function RoomPage() {
                                 {roomState.currentMedia.source === 'LOCAL' ? (
                                     <video
                                         ref={playerRef}
-                                        src={localFileUrl || undefined}
+                                        src={undefined}
                                         className="w-full h-full object-contain"
                                         onPlay={handlePlay}
                                         onPause={handlePause}
                                         onSeeked={(e) => handleSeek(e.currentTarget.currentTime)}
+                                        onEnded={handleEnded}
                                         // The video element must explicitly track playback speeds
                                         onRateChange={(e) => {
                                             if (e.currentTarget.playbackRate !== localPlaybackRate) {
@@ -744,6 +751,7 @@ export default function RoomPage() {
                                         onPlay={handlePlay}
                                         onPause={handlePause}
                                         onSeek={handleSeek}
+                                        onEnded={handleEnded}
                                         onBuffer={() => useSocketStore.getState().reportState(playerRef.current.getCurrentTime(), 'BUFFERING')}
                                         onBufferEnd={() => useSocketStore.getState().reportState(playerRef.current.getCurrentTime(), 'SYNCED')}
                                         controls={true}
@@ -769,7 +777,79 @@ export default function RoomPage() {
 
                         {/* Floating Reactions Overlay */}
                         <ReactionLayer />
+
+                        {/* Queue Panel Overlay */}
+                        <AnimatePresence>
+                            {showQueue && playlistQueue && (
+                                <QueuePanel
+                                    playlist={playlistQueue}
+                                    currentIndex={currentTrackIndex}
+                                    shuffle={shuffle}
+                                    repeatMode={repeatMode}
+                                    onClose={() => setShowQueue(false)}
+                                    onJumpTo={(idx) => handleTrackPlay(playlistQueue, idx)}
+                                    onPrev={handlePrev}
+                                    onNext={handleNext}
+                                    onToggleShuffle={() => setShuffle(!shuffle)}
+                                    onToggleRepeat={() => setRepeatMode(prev => prev === "NONE" ? "ONE" : prev === "ONE" ? "ALL" : "NONE")}
+                                    onReorder={(src, dest) => {
+                                        const newTracks = Array.from(playlistQueue.tracks);
+                                        const [moved] = newTracks.splice(src, 1);
+                                        newTracks.splice(dest, 0, moved);
+
+                                        let newIndex = currentTrackIndex;
+                                        if (src === currentTrackIndex) {
+                                            newIndex = dest;
+                                        } else if (src < currentTrackIndex && dest >= currentTrackIndex) {
+                                            newIndex--;
+                                        } else if (src > currentTrackIndex && dest <= currentTrackIndex) {
+                                            newIndex++;
+                                        }
+
+                                        const newQueue = {
+                                            playlist: { ...playlistQueue, tracks: newTracks },
+                                            trackIndex: newIndex
+                                        };
+                                        useSocketStore.getState().updateQueue(newQueue);
+                                    }}
+                                />
+                            )}
+                        </AnimatePresence>
                     </motion.div>
+
+                    {/* Active Playlist Control Bar */}
+                    {playlistQueue && (
+                        <div className="w-full max-w-5xl shrink-0 mt-2 z-20">
+                            <div className="bg-black/80 backdrop-blur-xl border border-white/10 rounded-xl px-4 py-3 flex items-center justify-between shadow-lg">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                                        <ListMusic size={14} className="text-purple-400" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-white text-sm font-medium truncate">{playlistQueue.tracks[currentTrackIndex]?.title || "Unknown Track"}</p>
+                                        <p className="text-neutral-500 text-xs truncate">Playlist: {playlistQueue.name}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <button onClick={handlePrev} className="p-2 text-neutral-400 hover:text-white rounded-lg transition-colors bg-white/5 hover:bg-white/10">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+                                    </button>
+                                    <button onClick={handleNext} className="p-2 text-white bg-purple-600 hover:bg-purple-500 rounded-lg transition-colors shadow-lg">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+                                    </button>
+                                    <div className="w-px h-6 bg-white/10 mx-1"></div>
+                                    <button
+                                        onClick={() => setShowQueue(!showQueue)}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${showQueue ? "bg-purple-500/20 text-purple-400" : "bg-white/5 text-neutral-400 hover:text-white"}`}
+                                    >
+                                        <ListMusic size={12} />
+                                        Queue
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Always visible Media Selector at the bottom */}
                     <div className="w-full max-w-5xl shrink-0 py-2 z-20">
@@ -1045,9 +1125,8 @@ export default function RoomPage() {
                                 inRoom={true}
                                 onClose={() => setShowPlaylistManager(false)}
                                 onPlayPlaylist={(playlist) => {
-                                    setPlaylistQueue(playlist);
-                                    setCurrentTrackIndex(0);
                                     if (playlist.tracks.length > 0) {
+                                        updateQueue({ playlist, trackIndex: 0 });
                                         const track = playlist.tracks[0];
                                         changeMedia(track.mediaId, track.source as any);
                                     }
@@ -1079,9 +1158,8 @@ export default function RoomPage() {
                         <div className="flex items-center gap-2 shrink-0">
                             <button
                                 onClick={() => {
-                                    setPlaylistQueue(sharedPlaylist.playlist);
-                                    setCurrentTrackIndex(0);
                                     if (sharedPlaylist.playlist.tracks.length > 0) {
+                                        updateQueue({ playlist: sharedPlaylist.playlist, trackIndex: 0 });
                                         const track = sharedPlaylist.playlist.tracks[0];
                                         changeMedia(track.mediaId, track.source as any);
                                     }
