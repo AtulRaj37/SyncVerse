@@ -299,6 +299,6 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 4000;
 
-server.listen(PORT, () => {
+app.listen(PORT, () => {
     console.log(`SyncVerse server running on port ${PORT}`);
 });
