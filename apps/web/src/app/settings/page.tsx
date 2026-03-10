@@ -230,6 +230,14 @@ export default function SettingsPage() {
                                     {memberSinceDate}
                                 </p>
                             </div>
+
+                            {/* Developer Credit Footer */}
+                            <div className="mt-6 pt-3 border-t border-white/10 text-center flex items-center justify-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                                <p className="text-[10px] text-neutral-400 font-medium tracking-wide">
+                                    Designed by <span className="text-purple-400 font-bold whitespace-nowrap">Atul Raj</span>
+                                </p>
+                            </div>
                         </div>
                     </motion.div>
                 </div>

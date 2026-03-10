@@ -13,7 +13,7 @@ const Galaxy = dynamic(() => import("@/components/Galaxy"), { ssr: false }) as a
 
 export default function LandingPage() {
   return (
-    <div className="h-screen overflow-hidden bg-[#060610] font-sans flex flex-col items-center justify-center relative">
+    <div className="min-h-[100dvh] overflow-x-hidden bg-[#060610] font-sans flex flex-col items-center justify-center relative py-10">
 
       {/* Galaxy Backgroundddd — window-level mouse events are listened to inside Galaxy.jsx */}
       <div className="fixed inset-0 z-0" style={{ background: '#060610' }}>
@@ -32,7 +32,7 @@ export default function LandingPage() {
         />
       </div>
 
-      {/* All content in one screen — no page scroll ever */}
+      {/* All content in one screen but can scroll if needed */}
       <main className="relative z-10 w-full flex flex-col items-center justify-center px-4 gap-5">
 
         {/* Compact Hero */}
@@ -67,6 +67,18 @@ export default function LandingPage() {
           className="w-full max-w-md"
         >
           <HeroForm />
+        </motion.div>
+
+        {/* Developer Credit Footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 0.5 }}
+          className="mt-6 text-center pointer-events-none"
+        >
+          <p className="text-xs text-neutral-500 font-medium tracking-wide">
+            Designed & Developed by <span className="text-purple-400 font-bold whitespace-nowrap">Atul Raj</span> © {new Date().getFullYear()}
+          </p>
         </motion.div>
       </main>
     </div>

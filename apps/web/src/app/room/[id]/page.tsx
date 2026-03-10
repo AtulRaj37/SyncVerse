@@ -499,6 +499,14 @@ export default function RoomPage() {
                                         <LogOut size={14} /> Logout {useUserStore.getState().isGuest && 'Guest'}
                                     </button>
                                 </div>
+
+                                {/* Developer Credit Footer */}
+                                <div className="px-3 py-2 border-t border-white/5 bg-black/40 text-center flex items-center justify-center gap-1.5 backdrop-blur-md">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
+                                    <p className="text-[9px] text-neutral-400 font-medium uppercase tracking-wider">
+                                        Made by <span className="text-purple-400 font-bold tracking-widest text-[10px]">Atul Raj</span>
+                                    </p>
+                                </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
@@ -1009,7 +1017,7 @@ export default function RoomPage() {
                         <div ref={chatEndRef} />
                     </div>
 
-                    <div className="p-4 border-t border-white/10 relative shrink-0">
+                    <div className="px-3 py-3 border-t border-white/10 relative shrink-0">
                         {showEmojiPicker && (
                             <div className="absolute bottom-full right-4 mb-2 z-[70] max-h-64 sm:max-h-none overflow-y-auto custom-scrollbar rounded-xl">
                                 <Picker data={data} onEmojiSelect={(emoji: any) => {
@@ -1059,13 +1067,13 @@ export default function RoomPage() {
                                     setChatInput("");
                                 }
                             }}
-                            className="flex gap-2 relative"
+                            className="flex items-center gap-2 w-full"
                         >
-                            <div className="flex-1 flex items-center bg-black/50 border border-white/10 rounded-full focus-within:border-purple-500 transition-colors">
-                                <button type="button" onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowGifPicker(false); }} className="pl-4 pr-1.5 py-3 md:py-2 text-neutral-400 hover:text-purple-400 transition" title="Emojis">
+                            <div className="flex-1 min-w-0 flex items-center bg-black/50 border border-white/10 rounded-full focus-within:border-purple-500 transition-colors overflow-hidden">
+                                <button type="button" onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowGifPicker(false); }} className="pl-3 pr-1 py-2.5 text-neutral-400 hover:text-purple-400 transition flex-shrink-0" title="Emojis">
                                     🙂
                                 </button>
-                                <button type="button" onClick={() => { setShowGifPicker(!showGifPicker); setShowEmojiPicker(false); }} className="px-2 py-2 text-neutral-400 hover:text-purple-400 transition font-bold text-xs uppercase" title="GIFs">
+                                <button type="button" onClick={() => { setShowGifPicker(!showGifPicker); setShowEmojiPicker(false); }} className="px-1.5 py-2 text-neutral-400 hover:text-purple-400 transition font-bold text-xs uppercase flex-shrink-0" title="GIFs">
                                     GIF
                                 </button>
                                 <input
@@ -1073,15 +1081,15 @@ export default function RoomPage() {
                                     placeholder="Type a message..."
                                     value={chatInput}
                                     onChange={(e) => setChatInput(e.target.value)}
-                                    className="flex-1 bg-transparent px-2 py-3 text-sm text-white focus:outline-none placeholder:text-neutral-600"
+                                    className="flex-1 min-w-0 bg-transparent pr-3 py-2.5 text-sm text-white focus:outline-none placeholder:text-neutral-600"
                                 />
                             </div>
                             <button
                                 type="submit"
                                 disabled={!chatInput.trim()}
-                                className="w-12 h-12 md:w-10 md:h-10 rounded-full bg-purple-600 flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-500 transition-colors shrink-0 self-center"
+                                className="w-9 h-9 rounded-full bg-purple-600 flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-500 transition-colors flex-shrink-0"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 ml-0.5">
                                     <path d="M3.478 2.404a.75.75 0 00-.926.941l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.404z" />
                                 </svg>
                             </button>
