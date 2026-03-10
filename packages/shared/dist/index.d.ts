@@ -74,6 +74,7 @@ export interface ServerToClientEvents {
         id: string;
         userId?: string;
         name?: string;
+        avatarUrl?: string | null;
         text?: string;
         timestamp?: number;
         type?: 'TEXT' | 'EMOJI' | 'GIF';
@@ -137,4 +138,5 @@ export interface ClientToServerEvents {
         candidate: any;
     }) => void;
     C2S_SHARE_PLAYLIST: (playlist: SharedPlaylist) => void;
+    C2S_TOGGLE_DJ_MODE: (djMode: boolean) => void;
 }

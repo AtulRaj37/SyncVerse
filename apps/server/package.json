@@ -4,6 +4,7 @@
     "description": "SyncVerse WebSocket Backend",
     "main": "dist/index.js",
     "scripts": {
+        "prebuild": "npm run build --workspace=@syncverse/shared",
         "build": "tsc",
         "start": "node dist/index.js",
         "dev": "ts-node-dev --respawn --transpile-only src/index.ts"
