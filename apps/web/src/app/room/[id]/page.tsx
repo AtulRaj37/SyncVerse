@@ -22,6 +22,7 @@ import { MediaSelector } from "@/components/MediaSelector";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PlaylistManager } from "@/components/PlaylistManager";
 import { AddToPlaylistModal } from "@/components/AddToPlaylistModal";
+import { DraggableChatButton } from "@/components/DraggableChatButton";
 import { MessageSquare, X, Link as LinkIcon, LogOut, User, Users, Settings, Check, ListMusic, Play, AlertTriangle, BookmarkPlus } from "lucide-react";
 import { SharedPlaylist } from "@syncverse/shared";
 
@@ -194,15 +195,15 @@ export default function RoomPage() {
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
 
-        // If chat is functionally hidden (e.g. fullscreen but panel is closed), bump unread count
-        if (playerMode === 'FULLSCREEN' && !isChatSlidePanelOpen && chatMessages.length > 0) {
+        // If sidebar is closed on mobile / fullscreen, bump unread count
+        if ((!isSidebarOpen || (playerMode === 'FULLSCREEN' && !isChatSlidePanelOpen)) && chatMessages.length > 0) {
             // Only increment if the newest message is NOT from the current user
             const lastMsg = chatMessages[chatMessages.length - 1];
             if (lastMsg.userId !== currentUserId) {
                 setUnreadCount(prev => prev + 1);
             }
         }
-    }, [chatMessages, playerMode, isChatSlidePanelOpen, currentUserId]);
+    }, [chatMessages, playerMode, isChatSlidePanelOpen, isSidebarOpen, currentUserId]);
 
     // Fullscreen event listener sync
     useEffect(() => {
@@ -353,7 +354,7 @@ export default function RoomPage() {
                             alt="SyncVerse"
                             width={140}
                             height={32}
-                            className="h-6 w-auto object-contain hidden sm:block opacity-95 group-hover:opacity-100 transition-opacity duration-300 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)] ml-1"
+                            className="h-5 w-auto object-contain opacity-95 group-hover:opacity-100 transition-opacity duration-300 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)] ml-1"
                         />
                     </div>
 
@@ -396,7 +397,7 @@ export default function RoomPage() {
                                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
-                                    className="absolute top-12 right-0 w-80 glass-panel border border-white/10 shadow-2xl rounded-xl p-5 z-50 bg-[#141419] backdrop-blur-xl"
+                                    className="fixed sm:absolute top-[72px] sm:top-12 right-2 sm:right-0 w-[calc(100vw-1rem)] max-w-xs sm:w-80 glass-panel border border-white/10 shadow-2xl rounded-xl p-5 z-50 bg-[#141419] backdrop-blur-xl"
                                 >
                                     <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
                                         <LinkIcon size={16} className="text-purple-400" /> Invite to Room
@@ -544,12 +545,12 @@ export default function RoomPage() {
                         className={`w-full max-w-5xl flex-1 min-h-0 bg-black/80 rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(168,85,247,0.2)] ring-1 ring-white/10 relative glass-panel pointer-events-auto flex items-center justify-center group transition-all duration-300 ${playerMode === 'MINI_PLAYER' ? 'fixed bottom-24 right-4 md:bottom-6 md:right-6 !w-40 md:!w-72 !h-40 md:!h-48 !max-w-none shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-[100] cursor-pointer rounded-xl ring-purple-500/50 bg-[#000]' : ''
                             } ${playerMode === 'FULLSCREEN' ? '!max-w-none !rounded-none !ring-0 w-full h-full bg-[#000]' : ''}`}
                     >
-                        {/* Player View Controls */}
+                        {/* Player View Controls — bottom-left to avoid overlapping YouTube top-right buttons */}
                         {roomState?.currentMedia && (
-                            <div className="absolute top-4 right-4 z-[60] flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                            <div className="absolute bottom-12 left-3 z-[60] flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                                 <button
                                     onClick={(e) => { e.stopPropagation(); toggleMiniPlayer(); }}
-                                    className="p-2 bg-black/60 hover:bg-purple-600/80 rounded-lg text-white backdrop-blur-md transition-colors border border-white/10 shadow-lg pointer-events-auto"
+                                    className="p-2 bg-black/70 hover:bg-purple-600/80 rounded-lg text-white backdrop-blur-md transition-colors border border-white/10 shadow-lg pointer-events-auto"
                                     title={playerMode === 'MINI_PLAYER' ? "Restore Player" : "Mini Player"}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
@@ -562,7 +563,7 @@ export default function RoomPage() {
                                 </button>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
-                                    className="p-2 bg-black/60 hover:bg-purple-600/80 rounded-lg text-white backdrop-blur-md transition-colors border border-white/10 shadow-lg pointer-events-auto"
+                                    className="p-2 bg-black/70 hover:bg-purple-600/80 rounded-lg text-white backdrop-blur-md transition-colors border border-white/10 shadow-lg pointer-events-auto"
                                     title={playerMode === 'FULLSCREEN' ? "Exit Fullscreen" : "Fullscreen"}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
@@ -576,135 +577,133 @@ export default function RoomPage() {
                             </div>
                         )}
 
-                        {/* Floating Chat Drawer for Fullscreen Mode */}
-                        {playerMode === 'FULLSCREEN' && (
-                            <>
-                                <button
-                                    onClick={() => setIsChatSlidePanelOpen(!isChatSlidePanelOpen)}
-                                    className="absolute bottom-8 right-8 z-[60] flex items-center gap-2 px-5 py-3 bg-purple-600 hover:bg-purple-500 rounded-full text-white shadow-[0_10px_30px_rgba(168,85,247,0.5)] transition-transform hover:scale-105"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path fillRule="evenodd" d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.674 6.192.232.226.277.428.254.543a3.73 3.73 0 01-.814 1.686.75.75 0 00.44 1.223zM8.25 10.875a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25zM10.875 12a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0zm4.875-1.125a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25z" clipRule="evenodd" /></svg>
-                                    <span className="font-bold tracking-wide">Live Chat</span>
-                                    {unreadCount > 0 && !isChatSlidePanelOpen && (
-                                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-[10px] font-bold ring-2 ring-neutral-900 animate-bounce">
-                                            {unreadCount > 9 ? '9+' : unreadCount}
-                                        </div>
-                                    )}
-                                </button>
-
-                                {/* Chat Slide Panel */}
-                                <div className={`absolute inset-y-0 right-0 w-80 bg-neutral-900/95 backdrop-blur-3xl border-l border-white/10 z-[50] transition-transform duration-300 transform ${isChatSlidePanelOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-                                    <div className="p-4 border-b border-white/10 font-semibold text-sm tracking-widest text-neutral-400 flex justify-between items-center uppercase bg-black/20">
-                                        <span>Live Chat</span>
-                                        <button onClick={() => setIsChatSlidePanelOpen(false)} className="p-1 bg-white/10 rounded-full hover:bg-white/20 transition"><X size={14} /></button>
+                        {/* Fullscreen: floating Live Chat button — hidden when panel is open */}
+                        {playerMode === 'FULLSCREEN' && !isChatSlidePanelOpen && (
+                            <button
+                                onClick={() => { setIsChatSlidePanelOpen(true); setUnreadCount(0); }}
+                                className="absolute bottom-8 right-8 z-[60] flex items-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-500 rounded-full text-white shadow-[0_10px_30px_rgba(168,85,247,0.5)] transition-transform hover:scale-105 font-semibold text-sm"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.674 6.192.232.226.277.428.254.543a3.73 3.73 0 01-.814 1.686.75.75 0 00.44 1.223zM8.25 10.875a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25zM10.875 12a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0zm4.875-1.125a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25z" clipRule="evenodd" /></svg>
+                                Live Chat
+                                {unreadCount > 0 && (
+                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-[10px] font-bold ring-2 ring-neutral-900 animate-bounce">
+                                        {unreadCount > 9 ? '9+' : unreadCount}
                                     </div>
-                                    <div className="p-4 h-[calc(100%-120px)] overflow-y-auto space-y-4 custom-scrollbar">
-                                        {chatMessages.map((msg, idx) => {
-                                            const time = new Date(msg.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                                            return (
-                                                <div key={`fs-chat-${idx}`} className={`flex items-start gap-3 p-2 rounded-xl hover:bg-white/5 transition group`}>
-                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xs font-bold text-white shadow-lg overflow-hidden shrink-0 mt-0.5">
-                                                        {msg.name ? msg.name.charAt(0).toUpperCase() : '?'}
-                                                    </div>
-                                                    <div className="flex flex-col flex-1 min-w-0">
-                                                        <div className="flex items-baseline gap-2 mb-0.5">
-                                                            <span className="text-xs font-semibold text-white">{msg.name}</span>
-                                                            <span className="text-[9px] text-neutral-500">{time}</span>
-                                                        </div>
-                                                        {msg.type === 'GIF' && msg.gifUrl ? (
-                                                            <div className="mt-1 bg-white/5 rounded-lg overflow-hidden max-w-[200px] inline-block">
-                                                                <img src={msg.gifUrl} alt="GIF" loading="lazy" className="w-full h-auto object-contain" />
-                                                            </div>
-                                                        ) : (
-                                                            <div className="text-xs text-neutral-300 break-words">
-                                                                {msg.text}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                        <div ref={chatEndRef} />
-                                    </div>
-                                    <div className="p-3 border-t border-white/10 shrink-0 relative">
-                                        {showEmojiPicker && (
-                                            <div className="absolute bottom-full right-0 mb-2 z-[70]">
-                                                <Picker data={data} onEmojiSelect={(emoji: any) => {
-                                                    setChatInput(prev => prev + emoji.native);
-                                                    setShowEmojiPicker(false);
-                                                }} theme="dark" previewPosition="none" navPosition="bottom" />
-                                            </div>
-                                        )}
-                                        {showGifPicker && (
-                                            <div className="absolute bottom-full right-0 mb-2 w-[300px] h-[350px] bg-[#141419] border border-white/10 rounded-xl shadow-2xl flex flex-col overflow-hidden z-[70]">
-                                                <div className="p-3 border-b border-white/10 flex items-center justify-between bg-black/40">
-                                                    <input
-                                                        autoFocus
-                                                        type="text"
-                                                        placeholder="Search Giphy..."
-                                                        value={gifSearchQuery}
-                                                        onChange={(e) => setGifSearchQuery(e.target.value)}
-                                                        className="bg-transparent border-none text-white text-sm focus:outline-none w-full placeholder-neutral-500"
-                                                    />
-                                                    <button onClick={() => setShowGifPicker(false)} className="text-neutral-400 hover:text-white transition"><X size={16} /></button>
-                                                </div>
-                                                <div className="flex-1 overflow-y-auto p-2 grid grid-cols-2 gap-2 custom-scrollbar">
-                                                    {isSearchingGifs && gifs.length === 0 ? (
-                                                        <div className="col-span-2 text-center text-neutral-500 text-xs py-10 animate-pulse">Loading GIFs...</div>
-                                                    ) : gifs.length === 0 ? (
-                                                        <div className="col-span-2 text-center text-neutral-500 text-xs py-10">No GIFs found.</div>
-                                                    ) : (
-                                                        gifs.map((gif) => (
-                                                            <div key={gif.id} className="relative h-24 rounded-lg overflow-hidden bg-white/5 cursor-pointer group" onClick={() => {
-                                                                sendChatMessage({ type: 'GIF', gifUrl: gif.images.fixed_height.url });
-                                                                setShowGifPicker(false);
-                                                            }}>
-                                                                <img src={gif.images.fixed_height_small.url} alt={gif.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                                                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                                            </div>
-                                                        ))
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <form
-                                            onSubmit={(e) => {
-                                                e.preventDefault();
-                                                if (chatInput.trim()) {
-                                                    sendChatMessage({ text: chatInput, type: 'TEXT' });
-                                                    setChatInput("");
-                                                }
-                                            }}
-                                            className="flex gap-2 relative"
-                                        >
-                                            <div className="flex-1 flex items-center bg-black/50 border border-white/10 rounded-full focus-within:border-purple-500 transition-colors">
-                                                <button type="button" onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowGifPicker(false); }} className="pl-3 pr-1.5 py-2 text-neutral-400 hover:text-purple-400 transition" title="Emojis">
-                                                    🙂
-                                                </button>
-                                                <button type="button" onClick={() => { setShowGifPicker(!showGifPicker); setShowEmojiPicker(false); }} className="px-1.5 py-2 text-neutral-400 hover:text-purple-400 transition font-bold text-[10px] tracking-wider uppercase" title="GIFs">
-                                                    GIF
-                                                </button>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Message..."
-                                                    value={chatInput}
-                                                    onChange={(e) => setChatInput(e.target.value)}
-                                                    className="flex-1 bg-transparent px-2 py-2 text-xs text-white focus:outline-none placeholder:text-neutral-600"
-                                                />
-                                            </div>
-                                            <button
-                                                type="submit"
-                                                disabled={!chatInput.trim()}
-                                                className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-500 transition-colors shrink-0 p-2 self-center"
-                                            >
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3.478 2.404a.75.75 0 00-.926.941l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.404z" /></svg>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </>
+                                )}
+                            </button>
                         )}
+
+                        {/* Fullscreen Chat Slide Panel */}
+                        {playerMode === 'FULLSCREEN' && (<div className={`absolute inset-y-0 right-0 w-80 bg-neutral-900/95 backdrop-blur-3xl border-l border-white/10 z-[50] transition-transform duration-300 transform ${isChatSlidePanelOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                            <div className="p-4 border-b border-white/10 font-semibold text-sm tracking-widest text-neutral-400 flex justify-between items-center uppercase bg-black/20">
+                                <span>Live Chat</span>
+                                <button onClick={() => setIsChatSlidePanelOpen(false)} className="p-1 bg-white/10 rounded-full hover:bg-white/20 transition"><X size={14} /></button>
+                            </div>
+                            <div className="p-4 h-[calc(100%-120px)] overflow-y-auto space-y-4 custom-scrollbar">
+                                {chatMessages.map((msg, idx) => {
+                                    const time = new Date(msg.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                    return (
+                                        <div key={`fs-chat-${idx}`} className={`flex items-start gap-3 p-2 rounded-xl hover:bg-white/5 transition group`}>
+                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xs font-bold text-white shadow-lg overflow-hidden shrink-0 mt-0.5">
+                                                {msg.name ? msg.name.charAt(0).toUpperCase() : '?'}
+                                            </div>
+                                            <div className="flex flex-col flex-1 min-w-0">
+                                                <div className="flex items-baseline gap-2 mb-0.5">
+                                                    <span className="text-xs font-semibold text-white">{msg.name}</span>
+                                                    <span className="text-[9px] text-neutral-500">{time}</span>
+                                                </div>
+                                                {msg.type === 'GIF' && msg.gifUrl ? (
+                                                    <div className="mt-1 bg-white/5 rounded-lg overflow-hidden max-w-[200px] inline-block">
+                                                        <img src={msg.gifUrl} alt="GIF" loading="lazy" className="w-full h-auto object-contain" />
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-xs text-neutral-300 break-words">
+                                                        {msg.text}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                                <div ref={chatEndRef} />
+                            </div>
+                            <div className="p-3 border-t border-white/10 shrink-0 relative">
+                                {showEmojiPicker && (
+                                    <div className="absolute bottom-full right-0 mb-2 z-[70]">
+                                        <Picker data={data} onEmojiSelect={(emoji: any) => {
+                                            setChatInput(prev => prev + emoji.native);
+                                            setShowEmojiPicker(false);
+                                        }} theme="dark" previewPosition="none" navPosition="bottom" />
+                                    </div>
+                                )}
+                                {showGifPicker && (
+                                    <div className="absolute bottom-full right-0 mb-2 w-[300px] h-[350px] bg-[#141419] border border-white/10 rounded-xl shadow-2xl flex flex-col overflow-hidden z-[70]">
+                                        <div className="p-3 border-b border-white/10 flex items-center justify-between bg-black/40">
+                                            <input
+                                                autoFocus
+                                                type="text"
+                                                placeholder="Search Giphy..."
+                                                value={gifSearchQuery}
+                                                onChange={(e) => setGifSearchQuery(e.target.value)}
+                                                className="bg-transparent border-none text-white text-sm focus:outline-none w-full placeholder-neutral-500"
+                                            />
+                                            <button onClick={() => setShowGifPicker(false)} className="text-neutral-400 hover:text-white transition"><X size={16} /></button>
+                                        </div>
+                                        <div className="flex-1 overflow-y-auto p-2 grid grid-cols-2 gap-2 custom-scrollbar">
+                                            {isSearchingGifs && gifs.length === 0 ? (
+                                                <div className="col-span-2 text-center text-neutral-500 text-xs py-10 animate-pulse">Loading GIFs...</div>
+                                            ) : gifs.length === 0 ? (
+                                                <div className="col-span-2 text-center text-neutral-500 text-xs py-10">No GIFs found.</div>
+                                            ) : (
+                                                gifs.map((gif) => (
+                                                    <div key={gif.id} className="relative h-24 rounded-lg overflow-hidden bg-white/5 cursor-pointer group" onClick={() => {
+                                                        sendChatMessage({ type: 'GIF', gifUrl: gif.images.fixed_height.url });
+                                                        setShowGifPicker(false);
+                                                    }}>
+                                                        <img src={gif.images.fixed_height_small.url} alt={gif.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <form
+                                    onSubmit={(e) => {
+                                        e.preventDefault();
+                                        if (chatInput.trim()) {
+                                            sendChatMessage({ text: chatInput, type: 'TEXT' });
+                                            setChatInput("");
+                                        }
+                                    }}
+                                    className="flex gap-2 relative"
+                                >
+                                    <div className="flex-1 flex items-center bg-black/50 border border-white/10 rounded-full focus-within:border-purple-500 transition-colors">
+                                        <button type="button" onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowGifPicker(false); }} className="pl-3 pr-1.5 py-2 text-neutral-400 hover:text-purple-400 transition" title="Emojis">
+                                            🙂
+                                        </button>
+                                        <button type="button" onClick={() => { setShowGifPicker(!showGifPicker); setShowEmojiPicker(false); }} className="px-1.5 py-2 text-neutral-400 hover:text-purple-400 transition font-bold text-[10px] tracking-wider uppercase" title="GIFs">
+                                            GIF
+                                        </button>
+                                        <input
+                                            type="text"
+                                            placeholder="Message..."
+                                            value={chatInput}
+                                            onChange={(e) => setChatInput(e.target.value)}
+                                            className="flex-1 bg-transparent px-2 py-2 text-xs text-white focus:outline-none placeholder:text-neutral-600"
+                                        />
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        disabled={!chatInput.trim()}
+                                        className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-500 transition-colors shrink-0 p-2 self-center"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3.478 2.404a.75.75 0 00-.926.941l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.404z" /></svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>)}
 
                         {roomState?.currentMedia ? (
                             <div className="absolute inset-0 w-full h-full">
@@ -878,12 +877,14 @@ export default function RoomPage() {
                 </div>
 
                 {/* Mobile Sidebar Overlay */}
-                {isSidebarOpen && (
-                    <div
-                        className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-                        onClick={() => setIsSidebarOpen(false)}
-                    />
-                )}
+                {
+                    isSidebarOpen && (
+                        <div
+                            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                            onClick={() => setIsSidebarOpen(false)}
+                        />
+                    )
+                }
 
                 {/* Sidebar (Chat / Active Users) */}
                 <aside
@@ -1109,104 +1110,102 @@ export default function RoomPage() {
                     </div>
                 </aside>
 
-                {/* Mobile Floating Chat Trigger */}
-                <AnimatePresence>
-                    {!isSidebarOpen && (
-                        <motion.button
-                            initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.8, y: 20 }}
-                            onClick={() => setIsSidebarOpen(true)}
-                            className="lg:hidden fixed bottom-6 right-6 z-[45] bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-full px-5 py-3 shadow-[0_0_20px_rgba(168,85,247,0.5)] flex items-center gap-2 font-bold transition-transform hover:scale-105 active:scale-95"
-                        >
-                            <MessageSquare size={20} /> Chat
-                        </motion.button>
-                    )}
-                </AnimatePresence>
+                {/* Mobile Floating Chat Trigger — draggable, with unread badge */}
+                <DraggableChatButton
+                    onClick={() => { setIsSidebarOpen(true); setUnreadCount(0); }}
+                    unreadCount={unreadCount}
+                    hidden={isSidebarOpen}
+                />
 
-            </main>
+            </main >
 
             {/* ── Playlist Manager Modal Overlay ── */}
             <AnimatePresence>
-                {showPlaylistManager && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-                        onClick={(e) => { if (e.target === e.currentTarget) setShowPlaylistManager(false); }}
-                    >
+                {
+                    showPlaylistManager && (
                         <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.9, y: 20 }}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+                            onClick={(e) => { if (e.target === e.currentTarget) setShowPlaylistManager(false); }}
                         >
-                            <PlaylistManager
-                                inRoom={true}
-                                onClose={() => setShowPlaylistManager(false)}
-                                onPlayPlaylist={(playlist) => {
-                                    if (playlist.tracks.length > 0) {
-                                        updateQueue({ playlist, trackIndex: 0 });
-                                        const track = playlist.tracks[0];
-                                        changeMedia(track.mediaId, track.source as any);
-                                    }
-                                    setShowPlaylistManager(false);
-                                }}
-                            />
+                            <motion.div
+                                initial={{ scale: 0.9, y: 20 }}
+                                animate={{ scale: 1, y: 0 }}
+                                exit={{ scale: 0.9, y: 20 }}
+                            >
+                                <PlaylistManager
+                                    inRoom={true}
+                                    onClose={() => setShowPlaylistManager(false)}
+                                    onPlayPlaylist={(playlist) => {
+                                        if (playlist.tracks.length > 0) {
+                                            updateQueue({ playlist, trackIndex: 0 });
+                                            const track = playlist.tracks[0];
+                                            changeMedia(track.mediaId, track.source as any);
+                                        }
+                                        setShowPlaylistManager(false);
+                                    }}
+                                />
+                            </motion.div>
                         </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    )
+                }
+            </AnimatePresence >
 
             {/* ── Shared Playlist Notification ── */}
             <AnimatePresence>
-                {sharedPlaylist && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 40 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 40 }}
-                        className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[90] bg-[#1a1a24] border border-purple-500/30 rounded-2xl px-5 py-4 shadow-2xl flex items-center gap-4 min-w-[320px] max-w-sm"
-                    >
-                        <ListMusic size={24} className="text-purple-400 shrink-0" />
-                        <div className="flex-1 min-w-0">
-                            <p className="text-xs text-neutral-400 mb-0.5">
-                                <span className="text-white font-semibold">{sharedPlaylist.username}</span> shared a playlist
-                            </p>
-                            <p className="text-sm font-bold text-white truncate">{sharedPlaylist.playlist.name}</p>
-                            <p className="text-[10px] text-neutral-500">{sharedPlaylist.playlist.tracks.length} track{sharedPlaylist.playlist.tracks.length !== 1 ? "s" : ""}</p>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                            <button
-                                onClick={() => {
-                                    if (sharedPlaylist.playlist.tracks.length > 0) {
-                                        updateQueue({ playlist: sharedPlaylist.playlist, trackIndex: 0 });
-                                        const track = sharedPlaylist.playlist.tracks[0];
-                                        changeMedia(track.mediaId, track.source as any);
-                                    }
-                                    clearSharedPlaylist();
-                                }}
-                                className="px-3 py-1.5 rounded-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold transition flex items-center gap-1"
-                            >
-                                <Play size={12} /> Play
-                            </button>
-                            <button onClick={clearSharedPlaylist} className="text-neutral-500 hover:text-white transition">
-                                <X size={16} />
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                {
+                    sharedPlaylist && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 40 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 40 }}
+                            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[90] bg-[#1a1a24] border border-purple-500/30 rounded-2xl px-5 py-4 shadow-2xl flex items-center gap-4 min-w-[320px] max-w-sm"
+                        >
+                            <ListMusic size={24} className="text-purple-400 shrink-0" />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-xs text-neutral-400 mb-0.5">
+                                    <span className="text-white font-semibold">{sharedPlaylist.username}</span> shared a playlist
+                                </p>
+                                <p className="text-sm font-bold text-white truncate">{sharedPlaylist.playlist.name}</p>
+                                <p className="text-[10px] text-neutral-500">{sharedPlaylist.playlist.tracks.length} track{sharedPlaylist.playlist.tracks.length !== 1 ? "s" : ""}</p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                                <button
+                                    onClick={() => {
+                                        if (sharedPlaylist.playlist.tracks.length > 0) {
+                                            updateQueue({ playlist: sharedPlaylist.playlist, trackIndex: 0 });
+                                            const track = sharedPlaylist.playlist.tracks[0];
+                                            changeMedia(track.mediaId, track.source as any);
+                                        }
+                                        clearSharedPlaylist();
+                                    }}
+                                    className="px-3 py-1.5 rounded-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold transition flex items-center gap-1"
+                                >
+                                    <Play size={12} /> Play
+                                </button>
+                                <button onClick={clearSharedPlaylist} className="text-neutral-500 hover:text-white transition">
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        </motion.div>
+                    )
+                }
+            </AnimatePresence >
 
             {/* Add to Playlist Modal */}
-            {showAddToPlaylist && roomState?.currentMedia && (
-                <AddToPlaylistModal
-                    mediaId={roomState.currentMedia.mediaId}
-                    mediaTitle={playlistQueue?.tracks[currentTrackIndex]?.title}
-                    mediaSource={roomState.currentMedia.source}
-                    onClose={() => setShowAddToPlaylist(false)}
-                />
-            )}
+            {
+                showAddToPlaylist && roomState?.currentMedia && (
+                    <AddToPlaylistModal
+                        mediaId={roomState.currentMedia.mediaId}
+                        mediaTitle={playlistQueue?.tracks[currentTrackIndex]?.title}
+                        mediaSource={roomState.currentMedia.source}
+                        onClose={() => setShowAddToPlaylist(false)}
+                    />
+                )
+            }
 
-        </div>
+        </div >
     );
 }

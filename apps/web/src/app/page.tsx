@@ -13,7 +13,7 @@ const Galaxy = dynamic(() => import("@/components/Galaxy"), { ssr: false }) as a
 
 export default function LandingPage() {
   return (
-    <div className="min-h-[100dvh] overflow-x-hidden bg-[#060610] font-sans flex flex-col items-center justify-center relative py-10">
+    <div className="h-[100dvh] overflow-hidden bg-[#060610] font-sans flex flex-col items-center justify-center relative">
 
       {/* Galaxy Backgroundddd — window-level mouse events are listened to inside Galaxy.jsx */}
       <div className="fixed inset-0 z-0" style={{ background: '#060610' }}>
@@ -48,6 +48,7 @@ export default function LandingPage() {
             width={200}
             height={55}
             priority
+            style={{ width: 'auto' }}
             className="mb-3 drop-shadow-[0_0_24px_rgba(168,85,247,0.7)] hover:scale-105 transition-transform duration-300"
           />
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-1">
