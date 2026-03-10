@@ -111,7 +111,7 @@ io.on('connection', (socket) => {
 
         // 2. Add user to room state
         // Sanitize incoming profile to prevent nulls from local storage overriding DB data
-        const sanitizedProfile = { ...profile };
+        const sanitizedProfile: any = { ...profile };
         Object.keys(sanitizedProfile).forEach(key => {
             if (sanitizedProfile[key] === null || sanitizedProfile[key] === undefined) {
                 delete sanitizedProfile[key];

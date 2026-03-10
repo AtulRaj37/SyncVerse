@@ -15,6 +15,7 @@ const auth_1 = __importDefault(require("./routes/auth"));
 const rooms_1 = __importDefault(require("./routes/rooms"));
 const media_1 = __importDefault(require("./routes/media"));
 const users_1 = __importDefault(require("./routes/users"));
+const playlists_1 = __importDefault(require("./routes/playlists"));
 const path_1 = __importDefault(require("path"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
@@ -24,6 +25,7 @@ app.use('/api/auth', auth_1.default);
 app.use('/api/rooms', rooms_1.default);
 app.use('/api/media', media_1.default);
 app.use('/api/users', users_1.default);
+app.use('/api/playlists', playlists_1.default);
 // Serve uploads statically
 app.use('/uploads', express_1.default.static(path_1.default.join(__dirname, '../../uploads')));
 const server = http_1.default.createServer(app);
@@ -36,7 +38,12 @@ const io = new socket_io_1.Server(server, {
         methods: ['GET', 'POST']
     }
 });
-const pubClient = (0, redis_1.createClient)({ url: 'redis://localhost:6379' });
+const pubClient = (0, redis_1.createClient)({
+    url: process.env.REDIS_URL
+});
+pubClient.on("error", (err) => {
+    console.error("Redis error:", err);
+});
 const subClient = pubClient.duplicate();
 Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
     io.adapter((0, redis_adapter_1.createAdapter)(pubClient, subClient));
@@ -78,11 +85,26 @@ io.on('connection', (socket) => {
             // Initialize in memory
             roomState = RoomManager_1.roomManager.createRoom(dbRoom.id, dbRoom.hostId);
         }
+        // *** Room Capacity Limit: max 10 users ***
+        if (Object.keys(roomState.users).length >= 10) {
+            socket.emit('S2C_ROOM_FULL');
+            return;
+        }
         // 2. Add user to room state
+        // Sanitize incoming profile to prevent nulls from local storage overriding DB data
+        const sanitizedProfile = { ...profile };
+        Object.keys(sanitizedProfile).forEach(key => {
+            if (sanitizedProfile[key] === null || sanitizedProfile[key] === undefined) {
+                delete sanitizedProfile[key];
+            }
+        });
         const userState = {
             userId: socket.data.user.userId,
             socketId: socket.id,
-            profile: socket.data.user,
+            profile: {
+                ...socket.data.user,
+                ...sanitizedProfile
+            },
             status: 'SYNCED',
             lastPing: Date.now()
         };
@@ -105,7 +127,10 @@ io.on('connection', (socket) => {
         const room = RoomManager_1.roomManager.getRoom(roomId);
         if (!room)
             return;
-        // Everyone has permission to seek and play/pause
+        // Enforce DJ Mode (Host Only Controls)
+        if (room.settings.djMode && room.hostId !== userId) {
+            return; // Ignore command from non-host
+        }
         const statusMap = {
             'PLAY': 'PLAYING',
             'PAUSE': 'PAUSED',
@@ -128,7 +153,10 @@ io.on('connection', (socket) => {
         const room = RoomManager_1.roomManager.getRoom(roomId);
         if (!room)
             return;
-        // All users have permission to change media
+        // Enforce DJ Mode (Host Only Controls)
+        if (room.settings.djMode && room.hostId !== userId) {
+            return; // Ignore command from non-host
+        }
         RoomManager_1.roomManager.updateMedia(roomId, mediaId, source);
         // Broadcast entire new state to refresh players
         io.to(roomId).emit('S2C_ROOM_STATE', RoomManager_1.roomManager.getRoom(roomId));
@@ -144,16 +172,39 @@ io.on('connection', (socket) => {
             room.users[userId].lastPing = Date.now();
         }
     });
-    socket.on('C2S_CHAT_MESSAGE', (text) => {
+    socket.on('C2S_CHAT_MESSAGE', (data) => {
         const roomId = socket.data.activeRoomId;
         const user = socket.data.user;
-        if (!roomId || !user || !text.trim())
+        if (!roomId || !user)
+            return;
+        const room = RoomManager_1.roomManager.getRoom(roomId);
+        if (!room)
+            return;
+        const roomUser = room.users[user.userId];
+        if (!roomUser)
+            return;
+        // Discard empty text if it's a TEXT type
+        if (data.type === 'TEXT' && (!data.text || !data.text.trim()))
             return;
         io.to(roomId).emit('S2C_CHAT_MESSAGE', {
+            id: data.id || Math.random().toString(36).substr(2, 9),
             userId: user.userId,
-            name: user.name,
-            text: text.trim().substring(0, 500), // Max length protection
+            name: roomUser.profile.name,
+            avatarUrl: roomUser.profile.avatarUrl,
+            text: data.text ? data.text.trim().substring(0, 500) : undefined,
+            type: data.type || 'TEXT',
+            gifUrl: data.gifUrl,
             timestamp: Date.now()
+        });
+    });
+    socket.on('C2S_SHARE_PLAYLIST', (playlist) => {
+        const roomId = socket.data.activeRoomId;
+        const user = socket.data.user;
+        if (!roomId || !user || !playlist)
+            return;
+        io.to(roomId).emit('S2C_PLAYLIST_SHARED', {
+            username: user.name,
+            playlist,
         });
     });
     socket.on('C2S_EMOTE', (emoji) => {
@@ -166,6 +217,120 @@ io.on('connection', (socket) => {
             userId,
             emoji
         });
+    });
+    // --- WebRTC Signaling for Screen Share and Voice/Video ---
+    socket.on('C2S_WEBRTC_OFFER', ({ targetUserId, offer }) => {
+        const roomId = socket.data.activeRoomId;
+        const senderId = socket.data.user?.userId;
+        if (!roomId || !senderId || !targetUserId)
+            return;
+        const room = RoomManager_1.roomManager.getRoom(roomId);
+        const targetSocketId = room?.users[targetUserId]?.socketId;
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('S2C_WEBRTC_OFFER', { senderId, offer });
+        }
+    });
+    socket.on('C2S_WEBRTC_ANSWER', ({ targetUserId, answer }) => {
+        const roomId = socket.data.activeRoomId;
+        const senderId = socket.data.user?.userId;
+        if (!roomId || !senderId || !targetUserId)
+            return;
+        const room = RoomManager_1.roomManager.getRoom(roomId);
+        const targetSocketId = room?.users[targetUserId]?.socketId;
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('S2C_WEBRTC_ANSWER', { senderId, answer });
+        }
+    });
+    socket.on('C2S_WEBRTC_ICE', ({ targetUserId, candidate }) => {
+        const roomId = socket.data.activeRoomId;
+        const senderId = socket.data.user?.userId;
+        if (!roomId || !senderId || !targetUserId)
+            return;
+        const room = RoomManager_1.roomManager.getRoom(roomId);
+        const targetSocketId = room?.users[targetUserId]?.socketId;
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('S2C_WEBRTC_ICE', { senderId, candidate });
+        }
+    });
+    socket.on('C2S_UPDATE_QUEUE', (queue) => {
+        const roomId = socket.data.activeRoomId;
+        const userId = socket.data.user?.userId;
+        if (!roomId || !userId)
+            return;
+        const room = RoomManager_1.roomManager.getRoom(roomId);
+        if (room) {
+            // Enforce DJ Mode
+            if (room.settings.djMode && room.hostId !== userId) {
+                return;
+            }
+            room.activeQueue = queue;
+            io.to(roomId).emit('S2C_QUEUE_UPDATE', queue);
+            io.to(roomId).emit('S2C_ROOM_STATE', room);
+        }
+    });
+    socket.on('C2S_LOCAL_FILE_SELECTED', (data) => {
+        const roomId = socket.data.activeRoomId;
+        if (!roomId)
+            return;
+        const room = RoomManager_1.roomManager.getRoom(roomId);
+        if (room && room.currentMedia && room.currentMedia.source === 'LOCAL') {
+            room.currentMedia.localFileName = data.fileName;
+            room.currentMedia.localFileSize = data.fileSize;
+        }
+        io.to(roomId).emit('S2C_LOCAL_FILE_SELECTED', data);
+        if (room) {
+            io.to(roomId).emit('S2C_ROOM_STATE', room);
+        }
+    });
+    socket.on('C2S_TOGGLE_DJ_MODE', (djMode) => {
+        const roomId = socket.data.activeRoomId;
+        const userId = socket.data.user?.userId;
+        if (!roomId || !userId)
+            return;
+        const room = RoomManager_1.roomManager.getRoom(roomId);
+        if (room && room.hostId === userId) {
+            room.settings.djMode = djMode;
+            io.to(roomId).emit('S2C_ROOM_STATE', RoomManager_1.roomManager.getRoom(roomId));
+        }
+    });
+    socket.on('C2S_WEBRTC_OFFER', (data) => {
+        const roomId = socket.data.activeRoomId;
+        const senderId = socket.data.user?.userId;
+        if (!roomId || !senderId)
+            return;
+        const room = RoomManager_1.roomManager.getRoom(roomId);
+        if (room && room.users[data.targetUserId]) {
+            socket.to(room.users[data.targetUserId].socketId).emit('S2C_WEBRTC_OFFER', {
+                senderId,
+                offer: data.offer
+            });
+        }
+    });
+    socket.on('C2S_WEBRTC_ANSWER', (data) => {
+        const roomId = socket.data.activeRoomId;
+        const senderId = socket.data.user?.userId;
+        if (!roomId || !senderId)
+            return;
+        const room = RoomManager_1.roomManager.getRoom(roomId);
+        if (room && room.users[data.targetUserId]) {
+            socket.to(room.users[data.targetUserId].socketId).emit('S2C_WEBRTC_ANSWER', {
+                senderId,
+                answer: data.answer
+            });
+        }
+    });
+    socket.on('C2S_WEBRTC_ICE', (data) => {
+        const roomId = socket.data.activeRoomId;
+        const senderId = socket.data.user?.userId;
+        if (!roomId || !senderId)
+            return;
+        const room = RoomManager_1.roomManager.getRoom(roomId);
+        if (room && room.users[data.targetUserId]) {
+            socket.to(room.users[data.targetUserId].socketId).emit('S2C_WEBRTC_ICE', {
+                senderId,
+                candidate: data.candidate
+            });
+        }
     });
     socket.on('disconnect', () => {
         console.log(`Socket disconnected: ${socket.id}`);
@@ -180,7 +345,7 @@ io.on('connection', (socket) => {
         }
     });
 });
-const PORT = process.env.PORT || 4000;
-server.listen(PORT, () => {
+const PORT = parseInt(process.env.PORT || '4000', 10);
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`SyncVerse server running on port ${PORT}`);
 });

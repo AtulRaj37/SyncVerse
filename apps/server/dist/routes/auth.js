@@ -33,6 +33,8 @@ router.post('/guest', async (req, res) => {
                 id: user.id,
                 name: user.name,
                 avatarUrl: user.avatarUrl,
+                bio: user.bio,
+                createdAt: user.createdAt,
             },
             token,
         });
@@ -70,7 +72,7 @@ router.post('/register', async (req, res) => {
         });
         const token = jsonwebtoken_1.default.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
         return res.json({
-            user: { id: user.id, name: user.name, email: user.email, isGuest: user.isGuest, avatarUrl: user.avatarUrl },
+            user: { id: user.id, name: user.name, email: user.email, isGuest: user.isGuest, avatarUrl: user.avatarUrl, bio: user.bio, createdAt: user.createdAt },
             token,
         });
     }
@@ -80,7 +82,7 @@ router.post('/register', async (req, res) => {
     }
 });
 const LoginSchema = zod_1.z.object({
-    email: zod_1.z.string().email(),
+    identifier: zod_1.z.string().min(1, 'Email or username is required'),
     password: zod_1.z.string(),
 });
 router.post('/login', async (req, res) => {
@@ -89,8 +91,15 @@ router.post('/login', async (req, res) => {
         if (!parsed.success) {
             return res.status(400).json({ error: parsed.error.issues });
         }
-        const { email, password } = parsed.data;
-        const user = await prisma_1.prisma.user.findUnique({ where: { email } });
+        const { identifier, password } = parsed.data;
+        // Try to find user by email first, then by username (name)
+        let user = await prisma_1.prisma.user.findUnique({ where: { email: identifier } });
+        if (!user) {
+            // Fall back to finding by name (case-insensitive)
+            user = await prisma_1.prisma.user.findFirst({
+                where: { name: { equals: identifier, mode: 'insensitive' }, isGuest: false }
+            });
+        }
         if (!user || user.isGuest || !user.password) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
@@ -100,7 +109,7 @@ router.post('/login', async (req, res) => {
         }
         const token = jsonwebtoken_1.default.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
         return res.json({
-            user: { id: user.id, name: user.name, email: user.email, isGuest: user.isGuest, avatarUrl: user.avatarUrl },
+            user: { id: user.id, name: user.name, email: user.email, isGuest: user.isGuest, avatarUrl: user.avatarUrl, bio: user.bio, createdAt: user.createdAt },
             token,
         });
     }
