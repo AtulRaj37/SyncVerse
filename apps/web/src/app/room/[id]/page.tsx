@@ -239,17 +239,6 @@ export default function RoomPage() {
         setPlayerMode(prev => prev === 'MINI_PLAYER' ? 'NORMAL' : 'MINI_PLAYER');
     };
 
-    // Attach stream to video element when source is SCREEN
-    useEffect(() => {
-        if (roomState?.currentMedia?.source === 'SCREEN' && playerRef.current) {
-            // If the element is technically an HTMLVideoElement and not a ReactPlayer instance
-            const videoEl = playerRef.current as HTMLVideoElement;
-            if (videoEl && typeof videoEl.play === 'function') {
-                videoEl.srcObject = localStream || remoteStream || null;
-            }
-        }
-    }, [roomState?.currentMedia?.source, localStream, remoteStream]);
-
     useEffect(() => {
         if (!token || !name) {
             // User is not authenticated, redirect to home to join as guest, but preserve the room they tried to join
@@ -768,7 +757,12 @@ export default function RoomPage() {
                                     />
                                 ) : roomState.currentMedia.source === 'SCREEN' ? (
                                     <video
-                                        ref={playerRef}
+                                        ref={(el) => {
+                                            if (el) {
+                                                el.srcObject = localStream || remoteStream || null;
+                                                playerRef.current = el as any;
+                                            }
+                                        }}
                                         autoPlay
                                         playsInline
                                         muted={!!localStream} // Mute our own screen share to avoid echo

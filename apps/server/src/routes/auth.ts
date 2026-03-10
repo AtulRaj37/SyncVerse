@@ -38,6 +38,8 @@ router.post('/guest', async (req: Request, res: Response) => {
                 id: user.id,
                 name: user.name,
                 avatarUrl: user.avatarUrl,
+                bio: user.bio,
+                createdAt: user.createdAt,
             },
             token,
         });
@@ -86,7 +88,7 @@ router.post('/register', async (req: Request, res: Response) => {
         );
 
         return res.json({
-            user: { id: user.id, name: user.name, email: user.email, isGuest: user.isGuest, avatarUrl: user.avatarUrl },
+            user: { id: user.id, name: user.name, email: user.email, isGuest: user.isGuest, avatarUrl: user.avatarUrl, bio: user.bio, createdAt: user.createdAt },
             token,
         });
     } catch (error) {
@@ -134,7 +136,7 @@ router.post('/login', async (req: Request, res: Response) => {
         );
 
         return res.json({
-            user: { id: user.id, name: user.name, email: user.email, isGuest: user.isGuest, avatarUrl: user.avatarUrl },
+            user: { id: user.id, name: user.name, email: user.email, isGuest: user.isGuest, avatarUrl: user.avatarUrl, bio: user.bio, createdAt: user.createdAt },
             token,
         });
     } catch (error) {

@@ -110,10 +110,13 @@ io.on('connection', (socket) => {
         }
 
         // 2. Add user to room state
-        const userState = {
+        const userState: any = {
             userId: socket.data.user.userId,
             socketId: socket.id,
-            profile: socket.data.user,
+            profile: {
+                ...socket.data.user,
+                ...profile
+            },
             status: 'SYNCED' as const,
             lastPing: Date.now()
         };
@@ -200,14 +203,20 @@ io.on('connection', (socket) => {
         const user = socket.data.user;
         if (!roomId || !user) return;
 
+        const room = roomManager.getRoom(roomId);
+        if (!room) return;
+
+        const roomUser = room.users[user.userId];
+        if (!roomUser) return;
+
         // Discard empty text if it's a TEXT type
         if (data.type === 'TEXT' && (!data.text || !data.text.trim())) return;
 
         io.to(roomId).emit('S2C_CHAT_MESSAGE', {
             id: data.id || Math.random().toString(36).substr(2, 9),
             userId: user.userId,
-            name: user.name,
-            avatarUrl: user.avatarUrl,
+            name: roomUser.profile.name,
+            avatarUrl: roomUser.profile.avatarUrl,
             text: data.text ? data.text.trim().substring(0, 500) : undefined,
             type: data.type || 'TEXT',
             gifUrl: data.gifUrl,
