@@ -21,7 +21,8 @@ import { ReactionLayer } from "@/components/ReactionLayer";
 import { MediaSelector } from "@/components/MediaSelector";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PlaylistManager } from "@/components/PlaylistManager";
-import { MessageSquare, X, Link as LinkIcon, LogOut, User, Users, Settings, Check, ListMusic, Play, AlertTriangle } from "lucide-react";
+import { AddToPlaylistModal } from "@/components/AddToPlaylistModal";
+import { MessageSquare, X, Link as LinkIcon, LogOut, User, Users, Settings, Check, ListMusic, Play, AlertTriangle, BookmarkPlus } from "lucide-react";
 import { SharedPlaylist } from "@syncverse/shared";
 
 export default function RoomPage() {
@@ -47,6 +48,7 @@ export default function RoomPage() {
 
     // Playlist / Queue state
     const [showPlaylistManager, setShowPlaylistManager] = useState(false);
+    const [showAddToPlaylist, setShowAddToPlaylist] = useState(false);
     const playlistQueue = roomState?.activeQueue?.playlist || null;
     const currentTrackIndex = roomState?.activeQueue?.trackIndex || 0;
     const [showQueue, setShowQueue] = useState(false);
@@ -445,9 +447,6 @@ export default function RoomPage() {
                     </div>
 
 
-                    <div className="hidden sm:block">
-                        <ThemeToggle />
-                    </div>
 
                     {!useUserStore.getState().isGuest && (
                         <button
@@ -861,6 +860,19 @@ export default function RoomPage() {
 
                     {/* Always visible Media Selector at the bottom */}
                     <div className="w-full max-w-5xl shrink-0 py-2 z-20">
+                        {/* Add to Playlist row — shown for YouTube/SoundCloud tracks for signed-in users */}
+                        {roomState?.currentMedia && (roomState.currentMedia.source === 'YOUTUBE' || roomState.currentMedia.source === 'SOUNDCLOUD') && !useUserStore.getState().isGuest && (
+                            <div className="flex justify-end mb-2">
+                                <button
+                                    onClick={() => setShowAddToPlaylist(true)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-purple-600/25 border border-white/10 hover:border-purple-500/40 rounded-full text-xs text-white font-semibold transition-all shadow group"
+                                    title="Save current track to a playlist"
+                                >
+                                    <BookmarkPlus size={13} className="text-purple-400 group-hover:text-purple-300" />
+                                    Add to Playlist
+                                </button>
+                            </div>
+                        )}
                         <MediaSelector onStartScreenShare={startScreenShare} />
                     </div>
                 </div>
@@ -1184,6 +1196,16 @@ export default function RoomPage() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Add to Playlist Modal */}
+            {showAddToPlaylist && roomState?.currentMedia && (
+                <AddToPlaylistModal
+                    mediaId={roomState.currentMedia.mediaId}
+                    mediaTitle={playlistQueue?.tracks[currentTrackIndex]?.title}
+                    mediaSource={roomState.currentMedia.source}
+                    onClose={() => setShowAddToPlaylist(false)}
+                />
+            )}
 
         </div>
     );
