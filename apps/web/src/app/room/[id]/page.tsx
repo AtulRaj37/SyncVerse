@@ -32,7 +32,7 @@ export default function RoomPage() {
     const [error, setError] = useState("");
     const [roomData, setRoomData] = useState<any>(null);
 
-    const { connect, disconnect, roomState, isConnected, chatMessages, sendChatMessage, sendEmote, changeMedia, roomFull, sharedPlaylist, clearSharedPlaylist, updateQueue } = useSocketStore();
+    const { connect, disconnect, roomState, isConnected, chatMessages, sendChatMessage, sendEmote, changeMedia, roomFull, sharedPlaylist, clearSharedPlaylist, updateQueue, localFileUrl } = useSocketStore();
     const { localStream, remoteStream, startScreenShare, stopScreenShare } = useWebRTC();
 
     const playerRef = useRef<any>(null);
@@ -704,7 +704,7 @@ export default function RoomPage() {
                                 {roomState.currentMedia.source === 'LOCAL' ? (
                                     <video
                                         ref={playerRef}
-                                        src={undefined}
+                                        src={localFileUrl || undefined}
                                         className="w-full h-full object-contain"
                                         onPlay={handlePlay}
                                         onPause={handlePause}

@@ -20,6 +20,7 @@ interface SocketStore {
     error: string | null;
     roomFull: boolean;
     sharedPlaylist: { username: string; playlist: SharedPlaylist } | null;
+    localFileUrl: string | null;
 
     connect: (token: string, roomId: string, profile: UserState['profile']) => void;
     disconnect: () => void;
@@ -29,7 +30,9 @@ interface SocketStore {
     reportState: (currentTime: number, status: 'SYNCED' | 'DRIFTING' | 'BUFFERING') => void;
     sendChatMessage: (data: { text?: string; type?: 'TEXT' | 'GIF' | 'EMOJI'; gifUrl?: string }) => void;
     sendEmote: (emoji: string) => void;
-    changeMedia: (mediaId: string, source: 'YOUTUBE' | 'SOUNDCLOUD' | 'LOCAL') => void;
+    changeMedia: (mediaId: string, source: 'YOUTUBE' | 'SOUNDCLOUD' | 'LOCAL' | 'SCREEN') => void;
+    setLocalFileUrl: (url: string | null) => void;
+    selectLocalFile: (fileName: string, fileSize: number) => void;
 }
 
 export const useSocketStore = create<SocketStore>((set, get) => ({
@@ -40,6 +43,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     error: null,
     roomFull: false,
     sharedPlaylist: null,
+    localFileUrl: null,
 
     connect: (token, roomId, profile) => {
         // Prevent duplicate connections
@@ -197,6 +201,15 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
         const { socket } = get();
         if (socket && socket.connected) {
             socket.emit('C2S_CHANGE_MEDIA', mediaId, source);
+        }
+    },
+
+    setLocalFileUrl: (url) => set({ localFileUrl: url }),
+
+    selectLocalFile: (fileName, fileSize) => {
+        const { socket } = get();
+        if (socket && socket.connected) {
+            socket.emit('C2S_LOCAL_FILE_SELECTED', { fileName, fileSize });
         }
     }
 }));
