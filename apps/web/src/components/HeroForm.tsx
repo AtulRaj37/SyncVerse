@@ -135,12 +135,7 @@ export function HeroForm() {
 
             if (!extracted) throw new Error("Invalid code.");
 
-            const endpoint = extracted.length <= 10 ? `by-code/${extracted}` : extracted;
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms/${endpoint}`);
-            if (!res.ok) throw new Error("Room not found.");
-
-            const data = await res.json();
-            router.push(`/room/${data.room.id}`);
+            router.push(`/room/${extracted}`);
         } catch (err: any) {
             setError(err.message || "Failed to join room.");
             setLoading(false);

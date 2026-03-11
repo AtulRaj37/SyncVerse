@@ -7,16 +7,8 @@ import { verifyToken, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
-// Setup Multer for avatar uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, '../../../uploads/avatars'));
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        cb(null, 'avatar-' + uniqueSuffix + path.extname(file.originalname));
-    }
-});
+// Setup Multer for avatar uploads (Using memory storage for Base64 since Render Free Tier wipes disk uploads)
+const storage = multer.memoryStorage();
 const upload = multer({
     storage,
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
@@ -79,10 +71,10 @@ router.post('/me/avatar', verifyToken, upload.single('avatar'), async (req: Auth
         }
 
         const userId = req.user!.userId;
-        // The file is saved in uploads/avatars, dynamically construct URL for production / local
-        const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-        const host = req.headers.host || 'localhost:4000';
-        const avatarUrl = `${protocol}://${host}/uploads/avatars/${req.file.filename}`;
+        
+        // Convert the image file buffer to a Base64 Data URI string so it permanently lives in the PostgreSQL DB
+        const b64Buffer = req.file.buffer.toString('base64');
+        const avatarUrl = `data:${req.file.mimetype};base64,${b64Buffer}`;
 
         const updated = await prisma.user.update({
             where: { id: userId },

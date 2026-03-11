@@ -25,6 +25,7 @@ export const metadata: Metadata = {
 };
 
 import { GlobalLoading } from '@/components/GlobalLoading';
+import { UserHydrator } from '@/components/UserHydrator';
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 
@@ -56,6 +57,7 @@ export default function RootLayout({
 
           <div className="relative z-0 flex flex-col min-h-screen">
             <GlobalLoading />
+            <UserHydrator />
             {children}
           </div>
         </ThemeProvider>

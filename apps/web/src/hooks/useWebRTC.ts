@@ -23,10 +23,29 @@ export const useWebRTC = () => {
 
     const startScreenShare = async () => {
         try {
-            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+            const stream = await navigator.mediaDevices.getDisplayMedia({
+                video: {
+                    frameRate: { ideal: 60 } // Request smooth framerate but don't force downscaling
+                },
+                audio: {
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: false,
+                },
+                systemAudio: "include", // explicitly surface the Share Audio OS prompt
+                surfaceSwitching: "include" 
+            } as any);
+            
+            // Tell the browser WebRTC encoder that this stream contains continuous motion (video)
+            // otherwise Chrome automatically throttles screen shares to ~5 FPS to save bandwidth.
+            const videoTrack = stream.getVideoTracks()[0];
+            if ('contentHint' in videoTrack) {
+                (videoTrack as any).contentHint = 'motion';
+            }
+
             setLocalStream(stream);
 
-            stream.getVideoTracks()[0].onended = () => {
+            videoTrack.onended = () => {
                 stopScreenShare();
             };
 
@@ -68,7 +87,23 @@ export const useWebRTC = () => {
         };
 
         if (stream) {
-            stream.getTracks().forEach(track => pc.addTrack(track, stream));
+            stream.getTracks().forEach(track => {
+                const sender = pc.addTrack(track, stream);
+                // Attempt to cap bitrate to prevent black screen network drops on high motion (movies/youtube)
+                if (track.kind === 'video') {
+                    try {
+                        const params = sender.getParameters();
+                        if (!params.encodings) {
+                            params.encodings = [{}];
+                        }
+                        params.encodings[0].maxBitrate = 3000000; // 3 Mbps max
+                        params.encodings[0].maxFramerate = 30;
+                        sender.setParameters(params).catch(e => console.warn("Could not set sender params", e));
+                    } catch (e) {
+                        console.warn("Could not get/set sender params", e);
+                    }
+                }
+            });
             const offer = await pc.createOffer();
             await pc.setLocalDescription(offer);
             socket?.emit('C2S_WEBRTC_OFFER', { targetUserId, offer });
@@ -96,12 +131,17 @@ export const useWebRTC = () => {
 
         const handleOffer = async ({ senderId, offer }: any) => {
             let pc = peersRef.current.get(senderId);
-            if (!pc) {
-                pc = await createPeerConnection(senderId);
-            } else if (pc.signalingState !== "stable") {
-                console.warn(`Ignoring offer, PC in state: ${pc.signalingState}`);
-                return;
+            
+            // If we receive a new offer but we already have a PC, the sender likely restarted their screen share 
+            // after closing their previous PC. We MUST destroy the old ghost PC or else the new stream will 
+            // crash into a black screen due to fingerprint/ICE mismatch!
+            if (pc) {
+                pc.close();
+                peersRef.current.delete(senderId);
+                pendingCandidates.current.delete(senderId);
             }
+
+            pc = await createPeerConnection(senderId);
 
             try {
                 await pc.setRemoteDescription(new RTCSessionDescription(offer));

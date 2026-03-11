@@ -76,6 +76,7 @@ export default function RoomPage() {
     // Player View Modes
     const [playerMode, setPlayerMode] = useState<'NORMAL' | 'FULLSCREEN' | 'MINI_PLAYER'>('NORMAL');
     const playerContainerRef = useRef<HTMLDivElement>(null);
+    const [playBlocked, setPlayBlocked] = useState(false);
 
     // Floating Chat
     const [isChatSlidePanelOpen, setIsChatSlidePanelOpen] = useState(false);
@@ -252,7 +253,16 @@ export default function RoomPage() {
             const videoEl = playerRef.current as HTMLVideoElement;
             if (videoEl && typeof videoEl.play === 'function') {
                 videoEl.srcObject = localStream || remoteStream || null;
+                // Force play to ensure browser doesn't throttle the rendering of incoming high-motion tracks
+                videoEl.play()
+                    .then(() => setPlayBlocked(false))
+                    .catch(e => {
+                        console.warn("Auto-play blocked for WebRTC track", e);
+                        setPlayBlocked(true);
+                    });
             }
+        } else {
+            setPlayBlocked(false);
         }
     }, [roomState?.currentMedia?.source, localStream, remoteStream]);
 
@@ -270,7 +280,8 @@ export default function RoomPage() {
 
         const fetchRoom = async () => {
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms/${id}`, {
+                const endpoint = (id as string).length <= 10 ? `by-code/${id}` : id;
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms/${endpoint}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
@@ -629,14 +640,15 @@ export default function RoomPage() {
                         )}
 
                         {/* Fullscreen Chat Slide Panel */}
-                        {playerMode === 'FULLSCREEN' && (<div className={`absolute inset-y-0 right-0 w-80 bg-neutral-900/95 backdrop-blur-3xl border-l border-white/10 z-[50] transition-transform duration-300 transform ${isChatSlidePanelOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-                            <div className="p-4 border-b border-white/10 font-semibold text-sm tracking-widest text-neutral-400 flex justify-between items-center uppercase bg-black/20">
-                                <span>Live Chat</span>
-                                <button onClick={() => setIsChatSlidePanelOpen(false)} className="p-1 bg-white/10 rounded-full hover:bg-white/20 transition"><X size={14} /></button>
-                            </div>
-                            <div className="p-4 h-[calc(100%-120px)] overflow-y-auto space-y-4 custom-scrollbar">
-                                {chatMessages.map((msg, idx) => {
-                                    const time = new Date(msg.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        {playerMode === 'FULLSCREEN' && (
+                            <div className={`absolute inset-y-0 right-0 w-80 bg-neutral-900/95 backdrop-blur-3xl border-l border-white/10 z-[50] transition-transform duration-300 transform flex flex-col ${isChatSlidePanelOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                                <div className="p-4 border-b border-white/10 font-semibold text-sm tracking-widest text-neutral-400 flex justify-between items-center uppercase bg-black/20 shrink-0">
+                                    <span>Live Chat</span>
+                                    <button onClick={() => setIsChatSlidePanelOpen(false)} className="p-1 bg-white/10 rounded-full hover:bg-white/20 transition"><X size={14} /></button>
+                                </div>
+                                <div className="p-4 flex-1 overflow-y-auto space-y-4 custom-scrollbar min-h-0">
+                                    {chatMessages.map((msg, idx) => {
+                                        const time = new Date(msg.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                                     return (
                                         <div key={`fs-chat-${idx}`} className={`flex items-start gap-3 p-2 rounded-xl hover:bg-white/5 transition group`}>
                                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xs font-bold text-white shadow-lg overflow-hidden shrink-0 mt-0.5">
@@ -778,13 +790,41 @@ export default function RoomPage() {
                                         controls={true} // Give standard fallback controls for native scrub parsing
                                     />
                                 ) : roomState.currentMedia.source === 'SCREEN' ? (
-                                    <video
-                                        ref={playerRef}
-                                        autoPlay
-                                        playsInline
-                                        muted={!!localStream} // Mute our own screen share to avoid echo
-                                        className="w-full h-full object-contain"
-                                    />
+                                    <>
+                                        <video
+                                            ref={playerRef}
+                                            autoPlay
+                                            playsInline
+                                            muted={!!localStream} // Mute our own screen share to avoid echo
+                                            className="w-full h-full object-contain"
+                                        />
+                                        {playBlocked && (
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-50 backdrop-blur-md">
+                                                <div className="text-center flex flex-col items-center gap-4 p-8 bg-[#141419] rounded-2xl border border-white/10 shadow-2xl">
+                                                    <div className="w-16 h-16 rounded-full bg-purple-600/20 flex items-center justify-center">
+                                                        <Play size={28} className="text-purple-400 ml-1" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-white font-bold text-lg mb-1">Click to Watch</h3>
+                                                        <p className="text-neutral-400 text-sm max-w-[250px]">Your browser paused the screen share because it contains audio.</p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            const videoEl = playerRef.current as HTMLVideoElement;
+                                                            if (videoEl) {
+                                                                videoEl.play()
+                                                                    .then(() => setPlayBlocked(false))
+                                                                    .catch(e => console.error("Still blocked", e));
+                                                            }
+                                                        }}
+                                                        className="px-8 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] mt-2"
+                                                    >
+                                                        Play Stream
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
                                 ) : (
                                     <Player
                                         ref={playerRef}
