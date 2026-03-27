@@ -35,8 +35,8 @@ model Room {
   isPrivate Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  timeline  RoomTimelineEvent[]
+  timeline     RoomTimelineEvent[]
+  watchHistory WatchHistory[]
 }
 
 model Playlist {
@@ -77,4 +77,13 @@ model RoomTimelineEvent {
   eventType TimelineEventType
   payload   Json
   createdAt DateTime @default(now())
+}
+
+model WatchHistory {
+  id        String   @id @default(uuid())
+  roomId    String
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  mediaUrl  String
+  title     String?
+  timestamp DateTime @default(now())
 }

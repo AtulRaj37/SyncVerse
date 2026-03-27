@@ -5,7 +5,7 @@ export interface RoomState {
 
     currentMedia: {
         mediaId: string;
-        source: 'YOUTUBE' | 'SOUNDCLOUD' | 'LOCAL' | 'SCREEN';
+        source: 'YOUTUBE' | 'SOUNDCLOUD' | 'TWITCH' | 'LOCAL' | 'SCREEN';
         duration: number;
         localFileName?: string;
         localFileSize?: number;
@@ -71,6 +71,13 @@ export interface ServerToClientEvents {
     S2C_WEBRTC_ANSWER: (data: { senderId: string, answer: any }) => void;
     S2C_WEBRTC_ICE: (data: { senderId: string, candidate: any }) => void;
     S2C_PLAYLIST_SHARED: (data: { username: string; playlist: SharedPlaylist }) => void;
+
+    // Spatial Voice WebRTC
+    S2C_VOICE_OFFER: (data: { senderId: string, offer: any }) => void;
+    S2C_VOICE_ANSWER: (data: { senderId: string, answer: any }) => void;
+    S2C_VOICE_ICE: (data: { senderId: string, candidate: any }) => void;
+    S2C_USER_JOINED_VOICE: (userId: string) => void;
+    S2C_USER_LEFT_VOICE: (userId: string) => void;
 }
 
 // Client to Server Events
@@ -81,7 +88,7 @@ export interface ClientToServerEvents {
     C2S_EMOTE: (emoji: string) => void;
     C2S_REPORT_STATE: (state: { currentTime: number, status: UserState['status'] }) => void;
     C2S_CHAT_MESSAGE: (data: { id?: string, text?: string, type?: 'TEXT' | 'EMOJI' | 'GIF', gifUrl?: string }) => void;
-    C2S_CHANGE_MEDIA: (mediaId: string, source: 'YOUTUBE' | 'SOUNDCLOUD' | 'LOCAL' | 'SCREEN') => void;
+    C2S_CHANGE_MEDIA: (mediaId: string, source: 'YOUTUBE' | 'SOUNDCLOUD' | 'TWITCH' | 'LOCAL' | 'SCREEN') => void;
     C2S_LOCAL_FILE_SELECTED: (data: { fileName: string, fileSize: number }) => void;
     C2S_WEBRTC_OFFER: (data: { targetUserId: string, offer: any }) => void;
     C2S_UPDATE_QUEUE: (queue: { playlist: SharedPlaylist, trackIndex: number } | null) => void;
@@ -89,4 +96,11 @@ export interface ClientToServerEvents {
     C2S_WEBRTC_ICE: (data: { targetUserId: string, candidate: any }) => void;
     C2S_SHARE_PLAYLIST: (playlist: SharedPlaylist) => void;
     C2S_TOGGLE_DJ_MODE: (djMode: boolean) => void;
+
+    // Spatial Voice WebRTC
+    C2S_VOICE_OFFER: (data: { targetUserId: string, offer: any }) => void;
+    C2S_VOICE_ANSWER: (data: { targetUserId: string, answer: any }) => void;
+    C2S_VOICE_ICE: (data: { targetUserId: string, candidate: any }) => void;
+    C2S_JOIN_VOICE: () => void;
+    C2S_LEAVE_VOICE: () => void;
 }

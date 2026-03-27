@@ -190,6 +190,17 @@ io.on('connection', (socket) => {
 
         roomManager.updateMedia(roomId, mediaId, source);
 
+        // Save to Watch History
+        if (source === 'YOUTUBE' || source === 'SOUNDCLOUD' || source === 'TWITCH' || source === 'LOCAL') {
+            prisma.watchHistory.create({
+                data: {
+                    roomId,
+                    mediaUrl: mediaId,
+                    title: source, // simplified: storing source as title context
+                }
+            }).catch(err => console.error('Failed to save watch history:', err));
+        }
+
         // Broadcast entire new state to refresh players
         io.to(roomId).emit('S2C_ROOM_STATE', roomManager.getRoom(roomId)!);
     });
@@ -293,6 +304,56 @@ io.on('connection', (socket) => {
         }
     });
 
+    // --- Spatial Voice WebRTC ---
+    socket.on('C2S_JOIN_VOICE', () => {
+        const roomId = socket.data.activeRoomId;
+        const userId = socket.data.user?.userId;
+        if (!roomId || !userId) return;
+        io.to(roomId).emit('S2C_USER_JOINED_VOICE', userId);
+    });
+
+    socket.on('C2S_LEAVE_VOICE', () => {
+        const roomId = socket.data.activeRoomId;
+        const userId = socket.data.user?.userId;
+        if (!roomId || !userId) return;
+        io.to(roomId).emit('S2C_USER_LEFT_VOICE', userId);
+    });
+
+    socket.on('C2S_VOICE_OFFER', ({ targetUserId, offer }) => {
+        const roomId = socket.data.activeRoomId;
+        const senderId = socket.data.user?.userId;
+        if (!roomId || !senderId || !targetUserId) return;
+
+        const room = roomManager.getRoom(roomId);
+        const targetSocketId = room?.users[targetUserId]?.socketId;
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('S2C_VOICE_OFFER', { senderId, offer });
+        }
+    });
+
+    socket.on('C2S_VOICE_ANSWER', ({ targetUserId, answer }) => {
+        const roomId = socket.data.activeRoomId;
+        const senderId = socket.data.user?.userId;
+        if (!roomId || !senderId || !targetUserId) return;
+
+        const room = roomManager.getRoom(roomId);
+        const targetSocketId = room?.users[targetUserId]?.socketId;
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('S2C_VOICE_ANSWER', { senderId, answer });
+        }
+    });
+
+    socket.on('C2S_VOICE_ICE', ({ targetUserId, candidate }) => {
+        const roomId = socket.data.activeRoomId;
+        const senderId = socket.data.user?.userId;
+        if (!roomId || !senderId || !targetUserId) return;
+
+        const room = roomManager.getRoom(roomId);
+        const targetSocketId = room?.users[targetUserId]?.socketId;
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('S2C_VOICE_ICE', { senderId, candidate });
+        }
+    });
 
     socket.on('C2S_UPDATE_QUEUE', (queue) => {
         const roomId = socket.data.activeRoomId;

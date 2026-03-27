@@ -31,7 +31,7 @@ interface SocketStore {
     reportState: (currentTime: number, status: 'SYNCED' | 'DRIFTING' | 'BUFFERING') => void;
     sendChatMessage: (data: { text?: string; type?: 'TEXT' | 'GIF' | 'EMOJI'; gifUrl?: string }) => void;
     sendEmote: (emoji: string) => void;
-    changeMedia: (mediaId: string, source: 'YOUTUBE' | 'SOUNDCLOUD' | 'LOCAL' | 'SCREEN') => void;
+    changeMedia: (mediaId: string, source: 'YOUTUBE' | 'SOUNDCLOUD' | 'TWITCH' | 'LOCAL' | 'SCREEN') => void;
     setLocalFileUrl: (url: string | null) => void;
     selectLocalFile: (fileName: string, fileSize: number) => void;
 }

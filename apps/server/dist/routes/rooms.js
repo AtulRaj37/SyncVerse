@@ -87,4 +87,20 @@ router.get('/by-code/:code', async (req, res) => {
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
+// Get room watch history
+router.get('/:id/history', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const history = await prisma_1.prisma.watchHistory.findMany({
+            where: { roomId: id },
+            orderBy: { timestamp: 'desc' },
+            take: 50,
+        });
+        return res.json({ history });
+    }
+    catch (error) {
+        console.error('Fetch room history error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
 exports.default = router;

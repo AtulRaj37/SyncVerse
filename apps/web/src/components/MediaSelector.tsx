@@ -9,7 +9,7 @@ export const MediaSelector = ({ onStartScreenShare }: { onStartScreenShare?: () 
     const { roomState, changeMedia, setLocalFileUrl, selectLocalFile } = useSocketStore();
     const { id: currentUserId } = useUserStore();
 
-    const [mode, setMode] = useState<"YOUTUBE" | "LOCAL" | "SCREEN">("YOUTUBE");
+    const [mode, setMode] = useState<"WEB_STREAM" | "LOCAL" | "SCREEN">("WEB_STREAM");
     const [urlInput, setUrlInput] = useState("");
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -17,10 +17,17 @@ export const MediaSelector = ({ onStartScreenShare }: { onStartScreenShare?: () 
 
     const handleUrlSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!urlInput.trim()) return;
+        const url = urlInput.trim();
+        if (!url) return;
 
-        // Pass explicit URLs to the server. ReactPlayer v2 handles domain routing cleanly.
-        changeMedia(urlInput, mode);
+        let source: 'YOUTUBE' | 'SOUNDCLOUD' | 'TWITCH' = 'YOUTUBE';
+        if (url.includes('soundcloud.com')) {
+            source = 'SOUNDCLOUD';
+        } else if (url.includes('twitch.tv')) {
+            source = 'TWITCH';
+        }
+
+        changeMedia(url, source);
         setUrlInput("");
     };
 
@@ -57,13 +64,13 @@ export const MediaSelector = ({ onStartScreenShare }: { onStartScreenShare?: () 
 
             {/* Source Tabs */}
             <div className="flex gap-2 p-1 bg-black/40 rounded-lg">
-                {(["YOUTUBE", "LOCAL", "SCREEN"] as const).map(src => (
+                {(["WEB_STREAM", "LOCAL", "SCREEN"] as const).map(src => (
                     <button
                         key={src}
                         onClick={() => setMode(src)}
                         className={`flex-1 py-1.5 px-1 truncate text-xs font-semibold rounded-md transition-colors ${mode === src ? 'bg-white/10 text-white' : 'text-neutral-500 hover:text-white hover:bg-white/5'}`}
                     >
-                        {src === 'YOUTUBE' ? 'YOUTUBE / YT MUSIC' : src}
+                        {src === 'WEB_STREAM' ? 'WEB STREAM' : src}
                     </button>
                 ))}
             </div>
@@ -79,22 +86,24 @@ export const MediaSelector = ({ onStartScreenShare }: { onStartScreenShare?: () 
                     onSubmit={handleUrlSubmit}
                     className="flex flex-col gap-3"
                 >
-                    {mode === 'YOUTUBE' ? (
-                        <div className="flex gap-2">
-                            <input
-                                type="url"
-                                placeholder={"Paste YouTube Video or YT Music Playlist URL"}
-                                value={urlInput}
-                                onChange={(e) => setUrlInput(e.target.value)}
-                                className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors placeholder:text-neutral-600"
-                            />
-                            <button
-                                type="submit"
-                                disabled={!urlInput.trim()}
-                                className="px-5 rounded-xl bg-purple-600 font-semibold text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-500 transition-colors"
-                            >
-                                Play
-                            </button>
+                    {mode === 'WEB_STREAM' ? (
+                        <div className="flex flex-col gap-2">
+                            <div className="flex gap-2">
+                                <input
+                                    type="url"
+                                    placeholder={"Paste YouTube, SoundCloud, or Twitch Link"}
+                                    value={urlInput}
+                                    onChange={(e) => setUrlInput(e.target.value)}
+                                    className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors placeholder:text-neutral-600"
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={!urlInput.trim()}
+                                    className="px-5 rounded-xl bg-purple-600 font-semibold text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-500 transition-colors"
+                                >
+                                    Sync
+                                </button>
+                            </div>
                         </div>
                     ) : mode === 'LOCAL' ? (
                         <div className="flex flex-col gap-2">

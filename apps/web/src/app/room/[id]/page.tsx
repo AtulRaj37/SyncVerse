@@ -7,6 +7,7 @@ import { useUserStore } from "@/store/useUserStore";
 import { useSocketStore } from "@/store/useSocketStore";
 import { useSyncPlayback } from "@/hooks/useSyncPlayback";
 import { useWebRTC } from "@/hooks/useWebRTC";
+import { useVoiceRTC } from "@/hooks/useVoiceRTC";
 import { useDevicePerformance } from "@/hooks/useDevicePerformance";
 import dynamic from "next/dynamic";
 
@@ -20,11 +21,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRef } from "react";
 import { ReactionLayer } from "@/components/ReactionLayer";
 import { MediaSelector } from "@/components/MediaSelector";
+import { WatchHistoryPanel } from "@/components/WatchHistoryPanel";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PlaylistManager } from "@/components/PlaylistManager";
 import { AddToPlaylistModal } from "@/components/AddToPlaylistModal";
 import { DraggableChatButton } from "@/components/DraggableChatButton";
-import { MessageSquare, X, Link as LinkIcon, LogOut, User, Users, Settings, Check, ListMusic, Play, AlertTriangle, BookmarkPlus } from "lucide-react";
+import { MessageSquare, X, Link as LinkIcon, LogOut, User, Users, Settings, Check, ListMusic, Play, AlertTriangle, BookmarkPlus, History, Mic, MicOff } from "lucide-react";
 import { SharedPlaylist } from "@syncverse/shared";
 
 const getAvatarUrlFull = (url?: string | null) => {
@@ -52,11 +54,13 @@ export default function RoomPage() {
     const { socket, connect, disconnect, roomState, isConnected, chatMessages, sendChatMessage, sendEmote, changeMedia, roomFull, sharedPlaylist, clearSharedPlaylist, updateQueue, localFileUrl } = useSocketStore();
 
     const { localStream, remoteStream, startScreenShare, stopScreenShare } = useWebRTC();
+    const { isVoiceActive, toggleVoice, remoteAudioStreams } = useVoiceRTC();
 
     const playerRef = useRef<any>(null);
     const { localPlaybackRate, handlePlay, handlePause, handleSeek } = useSyncPlayback(playerRef);
 
     const [chatInput, setChatInput] = useState("");
+    const [sidebarTab, setSidebarTab] = useState<'CHAT' | 'HISTORY'>('CHAT');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isInviteOpen, setIsInviteOpen] = useState(false);
@@ -485,6 +489,20 @@ export default function RoomPage() {
                         </button>
                     )}
 
+                    {/* Voice Chat Toggle */}
+                    <button
+                        onClick={toggleVoice}
+                        className={`flex items-center gap-2 px-3 py-2 md:px-4 rounded-xl font-bold text-sm transition-all shadow-[0_4px_10px_rgba(0,0,0,0.5)] border ${
+                            isVoiceActive 
+                            ? "bg-green-500/20 text-green-400 border-green-500/50 hover:bg-green-500/30" 
+                            : "bg-white/5 text-neutral-300 border-white/10 hover:bg-white/10"
+                        }`}
+                        title={isVoiceActive ? "Mute Microphone" : "Join Voice Chat"}
+                    >
+                        {isVoiceActive ? <Mic size={16} /> : <MicOff size={16} />}
+                        <span className="hidden md:inline">{isVoiceActive ? "Voice Connected" : "Join Voice"}</span>
+                    </button>
+
                     {/* User Profile Dropdown Toggle */}
                     <button
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -579,6 +597,17 @@ export default function RoomPage() {
                             distortion={0}
                         />
                     )}
+                </div>
+
+                {/* Invisible Audio Renders for Voice Chat */}
+                <div className="hidden">
+                    {Array.from(remoteAudioStreams.entries()).map(([peerId, stream]) => (
+                        <audio 
+                            key={`voice-${peerId}`}
+                            autoPlay 
+                            ref={(el) => { if (el && el.srcObject !== stream) el.srcObject = stream; }} 
+                        />
+                    ))}
                 </div>
 
                 {/* Media Player Area */}
@@ -1073,10 +1102,25 @@ export default function RoomPage() {
                         </div>
                     </div>
 
-                    {/* Chat Header */}
-                    <div className="p-4 border-b border-white/10 font-semibold text-sm tracking-widest text-neutral-400 flex justify-between items-center uppercase bg-black/20">
-                        <span>Live Chat</span>
+                    {/* Sidebar Header & Tabs */}
+                    <div className="flex border-b border-white/10 bg-[#0B0B0F] font-semibold text-[10px] tracking-widest text-neutral-400 uppercase shrink-0">
+                        <button
+                            onClick={() => setSidebarTab('CHAT')}
+                            className={`flex-1 py-4 text-center border-b-[3px] transition-colors ${sidebarTab === 'CHAT' ? 'border-purple-500 text-purple-400 bg-white/5' : 'border-transparent hover:bg-white/5 hover:text-white'}`}
+                        >
+                            Live Chat
+                        </button>
+                        <button
+                            onClick={() => setSidebarTab('HISTORY')}
+                            className={`flex-1 py-4 text-center border-b-[3px] transition-colors flex items-center justify-center gap-1.5 ${sidebarTab === 'HISTORY' ? 'border-purple-500 text-purple-400 bg-white/5' : 'border-transparent hover:bg-white/5 hover:text-white'}`}
+                        >
+                            <History size={12} />
+                            History
+                        </button>
                     </div>
+
+                    {sidebarTab === 'CHAT' && (
+                        <>
 
                     <div className="flex-1 p-4 overflow-y-auto space-y-4 custom-scrollbar">
                         {chatMessages.length === 0 ? (
@@ -1218,6 +1262,12 @@ export default function RoomPage() {
                             </button>
                         </form>
                     </div>
+                        </>
+                    )}
+
+                    {sidebarTab === 'HISTORY' && (
+                        <WatchHistoryPanel roomId={id as string} />
+                    )}
                 </aside>
 
                 {/* Mobile Floating Chat Trigger — draggable, with unread badge */}

@@ -4,7 +4,7 @@ export interface RoomState {
     status: 'IDLE' | 'PLAYING' | 'PAUSED' | 'BUFFERING';
     currentMedia: {
         mediaId: string;
-        source: 'YOUTUBE' | 'SOUNDCLOUD' | 'LOCAL' | 'SCREEN';
+        source: 'YOUTUBE' | 'SOUNDCLOUD' | 'TWITCH' | 'LOCAL' | 'SCREEN';
         duration: number;
         localFileName?: string;
         localFileSize?: number;
@@ -100,6 +100,20 @@ export interface ServerToClientEvents {
         username: string;
         playlist: SharedPlaylist;
     }) => void;
+    S2C_VOICE_OFFER: (data: {
+        senderId: string;
+        offer: any;
+    }) => void;
+    S2C_VOICE_ANSWER: (data: {
+        senderId: string;
+        answer: any;
+    }) => void;
+    S2C_VOICE_ICE: (data: {
+        senderId: string;
+        candidate: any;
+    }) => void;
+    S2C_USER_JOINED_VOICE: (userId: string) => void;
+    S2C_USER_LEFT_VOICE: (userId: string) => void;
 }
 export interface ClientToServerEvents {
     C2S_SYNC_TIME: (clientSendTime: number) => void;
@@ -116,7 +130,7 @@ export interface ClientToServerEvents {
         type?: 'TEXT' | 'EMOJI' | 'GIF';
         gifUrl?: string;
     }) => void;
-    C2S_CHANGE_MEDIA: (mediaId: string, source: 'YOUTUBE' | 'SOUNDCLOUD' | 'LOCAL' | 'SCREEN') => void;
+    C2S_CHANGE_MEDIA: (mediaId: string, source: 'YOUTUBE' | 'SOUNDCLOUD' | 'TWITCH' | 'LOCAL' | 'SCREEN') => void;
     C2S_LOCAL_FILE_SELECTED: (data: {
         fileName: string;
         fileSize: number;
@@ -139,4 +153,18 @@ export interface ClientToServerEvents {
     }) => void;
     C2S_SHARE_PLAYLIST: (playlist: SharedPlaylist) => void;
     C2S_TOGGLE_DJ_MODE: (djMode: boolean) => void;
+    C2S_VOICE_OFFER: (data: {
+        targetUserId: string;
+        offer: any;
+    }) => void;
+    C2S_VOICE_ANSWER: (data: {
+        targetUserId: string;
+        answer: any;
+    }) => void;
+    C2S_VOICE_ICE: (data: {
+        targetUserId: string;
+        candidate: any;
+    }) => void;
+    C2S_JOIN_VOICE: () => void;
+    C2S_LEAVE_VOICE: () => void;
 }
