@@ -138,21 +138,21 @@ function CinematicHero() {
 
       {/* Act I */}
       <div ref={act1Ref} className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-4 text-center z-10">
-        <h1 className="text-[clamp(3.5rem,10vw,8rem)] font-black tracking-tighter leading-[0.8] mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-cyan-400 drop-shadow-[0_0_25px_rgba(168,85,247,0.5)] pointer-events-auto">
+        <h1 className="font-outfit text-[clamp(4rem,12vw,9rem)] font-black tracking-tighter leading-[0.8] mb-6 text-white drop-shadow-[0_0_35px_rgba(255,255,255,0.3)] pointer-events-auto">
           SYNCVERSE
         </h1>
-        <p className="text-neutral-400 text-lg md:text-2xl font-light tracking-wide max-w-xl pointer-events-auto">
+        <p className="font-outfit text-white/90 text-xl md:text-3xl font-medium tracking-wide max-w-2xl drop-shadow-md pointer-events-auto">
           Never Watch Alone. Frame-Perfect Media Sync.
         </p>
       </div>
 
       {/* Act II */}
       <div ref={act2Ref} className="absolute inset-0 flex items-center justify-end px-[10%] pointer-events-none z-10 opacity-0" style={{ transform: "rotateY(-15deg) translateX(100px)" }}>
-        <div className="backdrop-blur-xl bg-white/[0.03] border border-purple-500/20 rounded-3xl p-8 max-w-lg shadow-[0_0_50px_rgba(168,85,247,0.1)]">
-          <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-white to-neutral-400 mb-4">
+        <div className="backdrop-blur-xl bg-white/[0.05] border border-white/10 rounded-3xl p-8 max-w-lg shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+          <h2 className="font-outfit text-4xl font-bold text-white mb-4 drop-shadow-sm">
             Zero-Latency Rooms.
           </h2>
-          <p className="text-neutral-300 text-lg leading-relaxed">
+          <p className="font-outfit text-white/80 text-xl leading-relaxed font-light">
             Experience movies and music in perfect harmony. SyncVerse coordinates playback states globally with sub-millisecond precision.
           </p>
         </div>
@@ -208,10 +208,14 @@ function NavBar() {
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 
   return (
-    <header className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${scrolled ? "bg-[#030309]/80 backdrop-blur-2xl border-b border-white/[0.04]" : "bg-[#030309]/5"}`}>
-      <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-16">
-        <Image src="/logos/logo-transparent.png" alt="SyncVerse" width={130} height={34} style={{ width: "auto", height: "32px" }} />
-        <nav className="hidden md:flex items-center gap-8 text-sm text-neutral-500 font-medium">
+    <header className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${scrolled ? "bg-[#030309]/80 backdrop-blur-2xl border-b border-white/[0.04]" : "bg-transparent"}`}>
+      <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-20">
+        <div className="flex items-center gap-2">
+          <span className="font-outfit font-black text-2xl tracking-[0.15em] text-white drop-shadow-md">
+            SYNCVERSE
+          </span>
+        </div>
+        <nav className="hidden md:flex items-center gap-10 text-sm text-white/70 font-medium">
           {[["features", "Features"], ["how-it-works", "How it Works"], ["faq", "FAQ"]].map(([id, label]) => (
             <button key={id} onClick={() => scrollTo(id)} className="hover:text-white transition-colors">{label}</button>
           ))}
