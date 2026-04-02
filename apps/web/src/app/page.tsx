@@ -138,10 +138,10 @@ function CinematicHero() {
 
       {/* Act I */}
       <div ref={act1Ref} className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-4 text-center z-10">
-        <h1 className="font-outfit text-[clamp(4rem,12vw,9rem)] font-black tracking-tighter leading-[0.8] mb-6 text-white drop-shadow-[0_0_35px_rgba(255,255,255,0.3)] pointer-events-auto">
+        <h1 className="font-outfit text-[clamp(4rem,14vw,11rem)] font-black tracking-tighter leading-[0.8] mb-6 text-transparent bg-clip-text bg-gradient-to-b from-white via-white/90 to-white/30 drop-shadow-[0_0_35px_rgba(255,255,255,0.2)] pointer-events-auto">
           SYNCVERSE
         </h1>
-        <p className="font-outfit text-white/90 text-xl md:text-3xl font-medium tracking-wide max-w-2xl drop-shadow-md pointer-events-auto">
+        <p className="font-outfit text-white/80 text-xl md:text-3xl font-medium tracking-wide max-w-2xl drop-shadow-xl pointer-events-auto">
           Never Watch Alone. Frame-Perfect Media Sync.
         </p>
       </div>
@@ -210,7 +210,8 @@ function NavBar() {
   return (
     <header className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${scrolled ? "bg-[#030309]/80 backdrop-blur-2xl border-b border-white/[0.04]" : "bg-transparent"}`}>
       <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-20">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <Image src="/logos/logo-icon.png" alt="Icon" width={32} height={32} />
           <span className="font-outfit font-black text-2xl tracking-[0.15em] text-white drop-shadow-md">
             SYNCVERSE
           </span>
