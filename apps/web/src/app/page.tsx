@@ -138,21 +138,21 @@ function CinematicHero() {
 
       {/* Act I */}
       <div ref={act1Ref} className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-4 text-center z-10">
-        <h1 className="font-outfit text-[clamp(4rem,14vw,11rem)] font-black tracking-tighter leading-[0.8] mb-6 text-transparent bg-clip-text bg-gradient-to-b from-white via-white/90 to-white/30 drop-shadow-[0_0_35px_rgba(255,255,255,0.2)] pointer-events-auto">
+        <h1 className="font-outfit text-[clamp(4rem,14vw,11rem)] font-black tracking-tighter leading-[0.8] mb-6 text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70 drop-shadow-[0_10px_30px_rgba(0,0,0,0.9)] pointer-events-auto">
           SYNCVERSE
         </h1>
-        <p className="font-outfit text-white/80 text-xl md:text-3xl font-medium tracking-wide max-w-2xl drop-shadow-xl pointer-events-auto">
+        <p className="font-outfit text-white text-xl md:text-3xl font-medium tracking-wide max-w-2xl drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] pointer-events-auto">
           Never Watch Alone. Frame-Perfect Media Sync.
         </p>
       </div>
 
       {/* Act II */}
       <div ref={act2Ref} className="absolute inset-0 flex items-center justify-end px-[10%] pointer-events-none z-10 opacity-0" style={{ transform: "rotateY(-15deg) translateX(100px)" }}>
-        <div className="backdrop-blur-xl bg-white/[0.05] border border-white/10 rounded-3xl p-8 max-w-lg shadow-[0_0_50px_rgba(255,255,255,0.1)]">
-          <h2 className="font-outfit text-4xl font-bold text-white mb-4 drop-shadow-sm">
+        <div className="backdrop-blur-2xl bg-black/40 border border-white/20 rounded-3xl p-10 max-w-lg shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+          <h2 className="font-outfit text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-purple-400 mb-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
             Zero-Latency Rooms.
           </h2>
-          <p className="font-outfit text-white/80 text-xl leading-relaxed font-light">
+          <p className="font-outfit text-white/95 text-xl leading-relaxed font-medium drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
             Experience movies and music in perfect harmony. SyncVerse coordinates playback states globally with sub-millisecond precision.
           </p>
         </div>
