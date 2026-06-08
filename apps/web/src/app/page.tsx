@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { ArrowRight, Globe, Mic, Monitor, Zap, Shield, Play, Music, ChevronDown, Star, Tv, MessageSquare, Radio, Github, Check } from "lucide-react";
+import { ArrowRight, Globe, Mic, Monitor, Zap, Shield, Play, Music, ChevronDown, Star, Tv, MessageSquare, Radio, Github, Check, Lock, Unlock, Users, Laptop } from "lucide-react";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/dist/ScrollTrigger";
 
@@ -289,13 +289,314 @@ const FEATURES = [
   { icon: <Globe size={20} />, color: "cyan", title: "Zero-Install", desc: "No extensions, no desktop app. Works natively in any modern browser — Chrome, Firefox, Safari, and Edge.", bullets: ["Mobile friendly", "Progressive Web App", "Runs on any OS"] },
 ];
 
+// ------------------------------------------------------------
+// Interactive Feature Showcase Widgets
+// ------------------------------------------------------------
+function SyncDemoWidget() {
+  const [synced, setSynced] = useState(false);
+  const [latency, setLatency] = useState(42);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSynced(prev => {
+        const next = !prev;
+        setLatency(next ? 0 : Math.floor(Math.random() * 20) + 30);
+        return next;
+      });
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="w-full bg-[#06060c] rounded-xl border border-white/5 p-4 flex flex-col justify-between relative overflow-hidden font-outfit select-none">
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff02_1px,transparent_1px),linear-gradient(to_bottom,#ffffff02_1px,transparent_1px)] bg-[size:14px_24px]" />
+      
+      <div className="flex justify-between items-center z-10 mb-3">
+        <span className="text-[10px] uppercase tracking-wider font-bold text-neutral-500">Latency Analyzer</span>
+        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full transition-colors duration-300 ${synced ? "bg-purple-500/10 text-purple-400 border border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.15)]" : "bg-amber-500/10 text-amber-400 border border-amber-500/20"}`}>
+          {synced ? "SYNCED" : `DRIFT: +${latency}ms`}
+        </span>
+      </div>
+
+      <div className="space-y-3 z-10 mb-3">
+        <div className="space-y-1">
+          <div className="flex justify-between text-[9px] text-neutral-400">
+            <span>Room Host (Source)</span>
+            <span className="text-purple-400 font-bold">1:24.45</span>
+          </div>
+          <div className="h-1.5 w-full bg-neutral-900 rounded-full overflow-hidden">
+            <motion.div 
+              className="h-full bg-gradient-to-r from-purple-600 to-indigo-500 rounded-full" 
+              animate={{ width: ["30%", "85%"] }} 
+              transition={{ duration: 8, ease: "linear", repeat: Infinity }} 
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <div className="flex justify-between text-[9px] text-neutral-400">
+            <span>You (Client)</span>
+            <span className={synced ? "text-purple-400 font-bold transition-colors duration-300" : "text-amber-400 font-bold transition-colors duration-300"}>
+              {synced ? "1:24.45 (0ms drift)" : `1:24.41 (-40ms lag)`}
+            </span>
+          </div>
+          <div className="h-1.5 w-full bg-neutral-900 rounded-full overflow-hidden">
+            {synced ? (
+              <motion.div 
+                className="h-full bg-gradient-to-r from-purple-500 to-indigo-400 rounded-full" 
+                animate={{ width: ["30%", "85%"] }} 
+                transition={{ duration: 8, ease: "linear", repeat: Infinity }} 
+              />
+            ) : (
+              <motion.div 
+                className="h-full bg-gradient-to-r from-amber-500 to-orange-400 rounded-full" 
+                animate={{ width: ["28%", "83%"] }} 
+                transition={{ duration: 8, ease: "linear", repeat: Infinity }} 
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center text-[10px] text-neutral-500 z-10 pt-2 border-t border-white/5">
+        <span>Drift Auto-Correction</span>
+        <span className={synced ? "text-neutral-500" : "text-purple-400 font-bold animate-pulse"}>
+          {synced ? "Idle" : "Applying 1.05x correction..."}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function P2PShareWidget() {
+  return (
+    <div className="w-full bg-[#06060c] rounded-xl border border-white/5 p-4 flex items-center justify-around relative overflow-hidden font-outfit select-none min-h-[90px]">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#ffffff02_1px,transparent_1px)] bg-[size:10px_10px]" />
+      
+      <div className="flex flex-col items-center gap-1 z-10">
+        <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+          <Laptop size={14} />
+        </div>
+        <span className="text-[9px] text-neutral-400 font-bold">Sharer</span>
+      </div>
+
+      <div className="flex-1 max-w-[60px] h-1 bg-neutral-900 relative rounded-full overflow-hidden mx-2">
+        <motion.div 
+          className="absolute top-0 h-full w-4 bg-gradient-to-r from-transparent via-blue-400 to-transparent"
+          animate={{ left: ["-20%", "120%"] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+        />
+      </div>
+
+      <div className="flex flex-col items-center gap-1 opacity-40 z-10">
+        <div className="w-6 h-6 rounded-full bg-neutral-850 border border-neutral-700 flex items-center justify-center text-neutral-500 text-[8px] font-bold">
+          SRV
+        </div>
+        <span className="text-[7px] text-neutral-500">Bypassed</span>
+      </div>
+
+      <div className="flex-1 max-w-[60px] h-1 bg-neutral-900 relative rounded-full overflow-hidden mx-2">
+        <motion.div 
+          className="absolute top-0 h-full w-4 bg-gradient-to-r from-transparent via-blue-400 to-transparent"
+          animate={{ left: ["-20%", "120%"] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "linear", delay: 0.75 }}
+        />
+      </div>
+
+      <div className="flex flex-col items-center gap-1 z-10">
+        <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+          <Users size={14} />
+        </div>
+        <span className="text-[9px] text-neutral-400 font-bold">Viewer</span>
+      </div>
+    </div>
+  );
+}
+
+function QueueDemoWidget() {
+  const [tracks, setTracks] = useState([
+    { id: 1, title: "1. Daft Punk - One More Time", active: true },
+    { id: 2, title: "2. Interstellar Theme", active: false },
+    { id: 3, title: "3. Lofi Hip Hop Beats", active: false },
+  ]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTracks(prev => {
+        const copy = [...prev];
+        const last = copy.pop()!;
+        copy.unshift(last);
+        return copy.map((t, idx) => ({
+          ...t,
+          title: `${idx + 1}. ${t.title.substring(3)}`,
+          active: idx === 0
+        }));
+      });
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="w-full bg-[#06060c] rounded-xl border border-white/5 p-3 flex flex-col gap-1.5 relative overflow-hidden font-outfit select-none justify-center min-h-[90px]">
+      {tracks.map((t) => (
+        <motion.div 
+          key={t.id} 
+          layout
+          className={`px-3 py-1.5 rounded-lg border text-[10px] flex items-center justify-between transition-all duration-350 ${t.active ? "bg-pink-500/10 border-pink-500/30 text-pink-300 shadow-[0_0_10px_rgba(236,72,153,0.15)]" : "bg-neutral-900/40 border-white/5 text-neutral-400"}`}
+        >
+          <span className="font-semibold truncate">{t.title}</span>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {t.active && <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-ping" />}
+            <span className="text-[8px] text-neutral-500">{t.active ? "PLAYING" : "QUEUED"}</span>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+function ReactionsDemoWidget() {
+  const [reactions, setReactions] = useState<{ id: number; x: number; emoji: string }[]>([]);
+  const nextId = useRef(0);
+
+  const spawnEmoji = (emoji: string) => {
+    const id = nextId.current++;
+    const x = Math.random() * 80 + 10;
+    setReactions(prev => [...prev, { id, x, emoji }]);
+    setTimeout(() => {
+      setReactions(prev => prev.filter(r => r.id !== id));
+    }, 1800);
+  };
+
+  useEffect(() => {
+    const emojis = ["🔥", "💖", "🎉", "😮", "😂", "👍"];
+    const interval = setInterval(() => {
+      spawnEmoji(emojis[Math.floor(Math.random() * emojis.length)]);
+    }, 1500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="w-full bg-[#06060c] rounded-xl border border-white/5 p-3 flex flex-col justify-between relative overflow-hidden font-outfit select-none min-h-[120px]">
+      <div className="relative flex-1 w-full overflow-hidden min-h-[50px]">
+        <AnimatePresence>
+          {reactions.map(r => (
+            <motion.div
+              key={r.id}
+              initial={{ opacity: 0, scale: 0.5, x: `${r.x}%`, y: "75px" }}
+              animate={{ opacity: [0, 1, 1, 0], scale: [0.6, 1.2, 1, 0.8], y: "5px" }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.6, ease: "easeOut" }}
+              className="absolute text-sm pointer-events-none"
+            >
+              {r.emoji}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
+      <div className="flex gap-1.5 justify-center z-10 pt-1.5 border-t border-white/5">
+        {["🔥", "💖", "🎉", "😮"].map(emoji => (
+          <button 
+            key={emoji}
+            onClick={() => spawnEmoji(emoji)}
+            className="w-7 h-7 rounded-lg bg-neutral-900 border border-white/5 flex items-center justify-center text-xs hover:bg-neutral-850 active:scale-95 transition-all text-neutral-300 hover:text-white"
+          >
+            {emoji}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DJModeDemoWidget() {
+  const [djMode, setDjMode] = useState(true);
+
+  return (
+    <div className="w-full bg-[#06060c] rounded-xl border border-white/5 p-3 flex flex-col justify-between relative overflow-hidden font-outfit select-none min-h-[120px]">
+      <div className="flex justify-between items-center mb-1">
+        <span className="text-[9px] uppercase tracking-wider font-bold text-neutral-500">Room Security</span>
+        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full transition-colors duration-300 ${djMode ? "bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-[0_0_8px_rgba(245,158,11,0.1)]" : "bg-neutral-800 text-neutral-400"}`}>
+          {djMode ? "DJ MODE ON" : "SHARED PLAYBACK"}
+        </span>
+      </div>
+
+      <div className="flex items-center justify-center gap-3 py-1.5">
+        <motion.div 
+          animate={{ scale: djMode ? [1, 1.05, 1] : 1 }}
+          transition={{ duration: 2, repeat: djMode ? Infinity : 0 }}
+          className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all duration-300 ${djMode ? "bg-amber-500/15 border-amber-500/30 text-amber-400" : "bg-neutral-800 border-neutral-700 text-neutral-400"}`}
+        >
+          {djMode ? <Lock size={12} /> : <Unlock size={12} />}
+        </motion.div>
+        <div className="flex flex-col items-start">
+          <span className="text-[10px] text-white font-bold">{djMode ? "Host Controls Only" : "Anyone Can Control"}</span>
+          <span className="text-[8px] text-neutral-500">{djMode ? "Guests locked from pausing" : "Collaborative session"}</span>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center pt-1.5 border-t border-white/5">
+        <span className="text-[9px] text-neutral-400">DJ Access Toggle</span>
+        <button 
+          onClick={() => setDjMode(!djMode)}
+          className={`w-8 h-4 rounded-full relative transition-colors duration-300 ${djMode ? "bg-amber-500" : "bg-neutral-800"}`}
+        >
+          <motion.div 
+            layout 
+            className="w-3 h-3 rounded-full bg-white absolute top-0.5 shadow-md"
+            animate={{ left: djMode ? "17px" : "2px" }}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ZeroInstallWidget() {
+  return (
+    <div className="w-full bg-[#06060c] rounded-xl border border-white/5 p-3 flex flex-col justify-between relative overflow-hidden font-outfit select-none min-h-[120px]">
+      <div className="w-full bg-[#0a0a14] rounded border border-white/5 p-1 flex items-center gap-1.5">
+        <div className="flex gap-0.5 shrink-0">
+          <span className="w-1 h-1 rounded-full bg-red-500/40" />
+          <span className="w-1 h-1 rounded-full bg-yellow-500/40" />
+          <span className="w-1 h-1 rounded-full bg-green-500/40" />
+        </div>
+        <div className="flex-1 bg-black/40 rounded px-1.5 py-0.5 text-[8px] text-neutral-500 font-medium truncate flex items-center gap-1">
+          <Globe size={8} /> syncverse.tv/room/x9a2k
+        </div>
+      </div>
+
+      <div className="flex-1 flex items-center justify-center gap-2 py-2">
+        <div className="flex gap-2 text-neutral-400">
+          {["Chrome", "Safari", "Firefox"].map((b, i) => (
+            <motion.div
+              key={b}
+              animate={{ y: [0, -3, 0] }}
+              transition={{ duration: 2.2, repeat: Infinity, delay: i * 0.3, ease: "easeInOut" }}
+              className="text-[8px] font-bold px-1.5 py-0.5 bg-white/5 border border-white/5 rounded text-neutral-300"
+            >
+              {b}
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      <div className="text-[8px] text-center text-neutral-500 pt-1 border-t border-white/5">
+        Zero extensions required. Native browser sync.
+      </div>
+    </div>
+  );
+}
+
 const colorMap = {
-  purple: { border: "border-purple-500/20 hover:border-purple-400/40", icon: "bg-purple-500/15 text-purple-400", bullet: "text-purple-400" },
-  blue:   { border: "border-blue-500/20 hover:border-blue-400/40",     icon: "bg-blue-500/15 text-blue-400",   bullet: "text-blue-400" },
-  pink:   { border: "border-pink-500/20 hover:border-pink-400/40",     icon: "bg-pink-500/15 text-pink-400",   bullet: "text-pink-400" },
-  green:  { border: "border-emerald-500/20 hover:border-emerald-400/40", icon: "bg-emerald-500/15 text-emerald-400", bullet: "text-emerald-400" },
-  amber:  { border: "border-amber-500/20 hover:border-amber-400/40",   icon: "bg-amber-500/15 text-amber-400",  bullet: "text-amber-400" },
-  cyan:   { border: "border-cyan-500/20 hover:border-cyan-400/40",     icon: "bg-cyan-500/15 text-cyan-400",   bullet: "text-cyan-400" },
+  purple: { border: "border-purple-500/10 hover:border-purple-500/35", icon: "bg-purple-500/10 text-purple-400", bullet: "text-purple-400" },
+  blue:   { border: "border-blue-500/10 hover:border-blue-500/35",     icon: "bg-blue-500/10 text-blue-400",   bullet: "text-blue-400" },
+  pink:   { border: "border-pink-500/10 hover:border-pink-500/35",     icon: "bg-pink-500/10 text-pink-400",   bullet: "text-pink-400" },
+  green:  { border: "border-emerald-500/10 hover:border-emerald-500/35", icon: "bg-emerald-500/10 text-emerald-400", bullet: "text-emerald-400" },
+  amber:  { border: "border-amber-500/10 hover:border-amber-500/35",   icon: "bg-amber-500/10 text-amber-400",  bullet: "text-amber-400" },
+  cyan:   { border: "border-cyan-500/10 hover:border-cyan-500/35",     icon: "bg-cyan-500/10 text-cyan-400",   bullet: "text-cyan-400" },
 } as any;
 
 function FeaturesSection() {
@@ -303,55 +604,129 @@ function FeaturesSection() {
   return (
     <section id="features" ref={ref as any} className="relative z-10 py-28 px-6 overflow-hidden bg-[#030309]">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[1px] bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[1px] bg-gradient-to-r from-transparent via-purple-500/20 to-transparent" />
       </div>
 
       <div className="max-w-6xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 22 }} animate={v ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.6 }} className="mb-20 max-w-2xl">
           <span className="inline-block mb-5 text-[10px] font-bold uppercase tracking-[0.22em] text-purple-400">What's inside</span>
-          <h2 className="text-[clamp(2rem,4.5vw,3.5rem)] font-black text-white leading-tight mb-5">Everything a watch party<br />could ever need.</h2>
-          <p className="text-neutral-500 text-lg leading-relaxed">Built from scratch around real-time collaboration — not bolt-on features.</p>
+          <h2 className="text-[clamp(2.2rem,4.5vw,3.6rem)] font-black text-white leading-tight mb-5">Everything a watch party<br />could ever need.</h2>
+          <p className="text-neutral-500 text-lg leading-relaxed font-light">Built from scratch around real-time collaboration — not bolt-on features.</p>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={v ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.55, delay: 0.05 }} className={`lg:col-span-7 p-7 rounded-2xl border ${colorMap[FEATURES[0].color].border} bg-[#0c0c14] hover:bg-[#0f0f1a] transition-all duration-400 group relative overflow-hidden`}>
-            <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-purple-600/8 blur-3xl group-hover:bg-purple-600/14 transition-colors duration-700 pointer-events-none" />
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-5 ${colorMap[FEATURES[0].color].icon}`}>{FEATURES[0].icon}</div>
-            <h3 className="text-white font-bold text-xl mb-3">{FEATURES[0].title}</h3>
-            <p className="text-neutral-500 text-sm leading-relaxed mb-5">{FEATURES[0].desc}</p>
-            <ul className="space-y-1.5">{FEATURES[0].bullets.map(b => (<li key={b} className={`flex items-center gap-2 text-xs font-medium ${colorMap[FEATURES[0].color].bullet}`}><Check size={12} className="shrink-0" /> {b}</li>))}</ul>
+          {/* Large Card: Frame-Perfect Sync */}
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }} 
+            animate={v ? { opacity: 1, y: 0 } : {}} 
+            transition={{ duration: 0.55, delay: 0.05 }} 
+            className={`lg:col-span-7 p-7 rounded-2xl border ${colorMap[FEATURES[0].color].border} bg-[#0c0c14]/50 backdrop-blur-md transition-all duration-400 group relative overflow-hidden flex flex-col justify-between`}
+          >
+            <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-purple-600/5 blur-3xl group-hover:bg-purple-600/10 transition-colors duration-700 pointer-events-none" />
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+              <div className="md:col-span-7">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-5 ${colorMap[FEATURES[0].color].icon}`}>{FEATURES[0].icon}</div>
+                <h3 className="text-white font-bold text-xl mb-3">{FEATURES[0].title}</h3>
+                <p className="text-neutral-500 text-sm leading-relaxed mb-5">{FEATURES[0].desc}</p>
+                <ul className="space-y-1.5">{FEATURES[0].bullets.map(b => (<li key={b} className={`flex items-center gap-2 text-xs font-medium ${colorMap[FEATURES[0].color].bullet}`}><Check size={12} className="shrink-0" /> {b}</li>))}</ul>
+              </div>
+              <div className="md:col-span-5 w-full">
+                <SyncDemoWidget />
+              </div>
+            </div>
           </motion.div>
 
+          {/* Medium Column */}
           <div className="lg:col-span-5 flex flex-col gap-4">
-            {FEATURES.slice(1, 3).map((f, i) => {
-              const c = colorMap[f.color];
-              return (
-                <motion.div key={f.title} initial={{ opacity: 0, y: 24 }} animate={v ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay: 0.1 + i * 0.07 }} className={`flex-1 p-6 rounded-2xl border ${c.border} bg-[#0c0c14] hover:bg-[#0f0f1a] transition-all duration-400 group relative overflow-hidden`}>
-                  <div className={`absolute -bottom-10 -right-10 w-40 h-40 rounded-full blur-3xl opacity-30 group-hover:opacity-50 transition-opacity pointer-events-none ${f.color === "blue" ? "bg-blue-600/20" : "bg-pink-600/20"}`} />
-                  <div className="flex items-start gap-4">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${c.icon}`}>{f.icon}</div>
-                    <div>
-                      <h3 className="text-white font-semibold text-base mb-1.5">{f.title}</h3>
-                      <p className="text-neutral-500 text-xs leading-relaxed">{f.desc}</p>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
+            {/* Card 2: P2P Screen Share */}
+            <motion.div 
+              initial={{ opacity: 0, y: 24 }} 
+              animate={v ? { opacity: 1, y: 0 } : {}} 
+              transition={{ duration: 0.5, delay: 0.1 }} 
+              className={`p-6 rounded-2xl border ${colorMap[FEATURES[1].color].border} bg-[#0c0c14]/50 backdrop-blur-md transition-all duration-400 group relative overflow-hidden flex flex-col justify-between`}
+            >
+              <div className="flex items-start gap-4 mb-4">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${colorMap[FEATURES[1].color].icon}`}>{FEATURES[1].icon}</div>
+                <div>
+                  <h3 className="text-white font-semibold text-base mb-1.5">{FEATURES[1].title}</h3>
+                  <p className="text-neutral-500 text-xs leading-relaxed">{FEATURES[1].desc}</p>
+                </div>
+              </div>
+              <P2PShareWidget />
+            </motion.div>
+
+            {/* Card 3: Collaborative Queues */}
+            <motion.div 
+              initial={{ opacity: 0, y: 24 }} 
+              animate={v ? { opacity: 1, y: 0 } : {}} 
+              transition={{ duration: 0.5, delay: 0.17 }} 
+              className={`p-6 rounded-2xl border ${colorMap[FEATURES[2].color].border} bg-[#0c0c14]/50 backdrop-blur-md transition-all duration-400 group relative overflow-hidden flex flex-col justify-between`}
+            >
+              <div className="flex items-start gap-4 mb-4">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${colorMap[FEATURES[2].color].icon}`}>{FEATURES[2].icon}</div>
+                <div>
+                  <h3 className="text-white font-semibold text-base mb-1.5">{FEATURES[2].title}</h3>
+                  <p className="text-neutral-500 text-xs leading-relaxed">{FEATURES[2].desc}</p>
+                </div>
+              </div>
+              <QueueDemoWidget />
+            </motion.div>
           </div>
 
-          {FEATURES.slice(3).map((f, i) => {
-             const c = colorMap[f.color];
-             return (
-              <motion.div key={f.title} initial={{ opacity: 0, y: 24 }} animate={v ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay: 0.22 + i * 0.07 }} className={`lg:col-span-4 p-6 rounded-2xl border ${c.border} bg-[#0c0c14] hover:bg-[#0f0f1a] transition-all duration-400 group relative overflow-hidden`}>
-                <div className={`absolute -top-8 -right-8 w-32 h-32 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity pointer-events-none ${f.color === "green" ? "bg-emerald-600" : f.color === "amber" ? "bg-amber-600" : "bg-cyan-600"}`} />
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-4 ${c.icon}`}>{f.icon}</div>
-                <h3 className="text-white font-semibold text-base mb-2">{f.title}</h3>
-                <p className="text-neutral-500 text-xs leading-relaxed mb-4">{f.desc}</p>
-                <ul className="space-y-1.5">{f.bullets.map(b => (<li key={b} className={`flex items-center gap-1.5 text-[11px] font-medium ${c.bullet}`}><Check size={11} className="shrink-0" /> {b}</li>))}</ul>
-              </motion.div>
-             );
-          })}
+          {/* Bottom row cards */}
+          {/* Card 4: Live Chat & Reactions */}
+          <motion.div 
+            initial={{ opacity: 0, y: 24 }} 
+            animate={v ? { opacity: 1, y: 0 } : {}} 
+            transition={{ duration: 0.5, delay: 0.22 }} 
+            className={`lg:col-span-4 p-6 rounded-2xl border ${colorMap[FEATURES[3].color].border} bg-[#0c0c14]/50 backdrop-blur-md transition-all duration-400 group relative overflow-hidden flex flex-col justify-between`}
+          >
+            <div>
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-4 ${colorMap[FEATURES[3].color].icon}`}>{FEATURES[3].icon}</div>
+              <h3 className="text-white font-semibold text-base mb-2">{FEATURES[3].title}</h3>
+              <p className="text-neutral-500 text-xs leading-relaxed mb-4">{FEATURES[3].desc}</p>
+            </div>
+            <div className="mt-auto pt-2 space-y-4">
+              <ReactionsDemoWidget />
+              <ul className="space-y-1.5 pt-2 border-t border-white/5">{FEATURES[3].bullets.map(b => (<li key={b} className={`flex items-center gap-1.5 text-[11px] font-medium ${colorMap[FEATURES[3].color].bullet}`}><Check size={11} className="shrink-0" /> {b}</li>))}</ul>
+            </div>
+          </motion.div>
+
+          {/* Card 5: DJ Mode */}
+          <motion.div 
+            initial={{ opacity: 0, y: 24 }} 
+            animate={v ? { opacity: 1, y: 0 } : {}} 
+            transition={{ duration: 0.5, delay: 0.29 }} 
+            className={`lg:col-span-4 p-6 rounded-2xl border ${colorMap[FEATURES[4].color].border} bg-[#0c0c14]/50 backdrop-blur-md transition-all duration-400 group relative overflow-hidden flex flex-col justify-between`}
+          >
+            <div>
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-4 ${colorMap[FEATURES[4].color].icon}`}>{FEATURES[4].icon}</div>
+              <h3 className="text-white font-semibold text-base mb-2">{FEATURES[4].title}</h3>
+              <p className="text-neutral-500 text-xs leading-relaxed mb-4">{FEATURES[4].desc}</p>
+            </div>
+            <div className="mt-auto pt-2 space-y-4">
+              <DJModeDemoWidget />
+              <ul className="space-y-1.5 pt-2 border-t border-white/5">{FEATURES[4].bullets.map(b => (<li key={b} className={`flex items-center gap-1.5 text-[11px] font-medium ${colorMap[FEATURES[4].color].bullet}`}><Check size={11} className="shrink-0" /> {b}</li>))}</ul>
+            </div>
+          </motion.div>
+
+          {/* Card 6: Zero-Install */}
+          <motion.div 
+            initial={{ opacity: 0, y: 24 }} 
+            animate={v ? { opacity: 1, y: 0 } : {}} 
+            transition={{ duration: 0.5, delay: 0.36 }} 
+            className={`lg:col-span-4 p-6 rounded-2xl border ${colorMap[FEATURES[5].color].border} bg-[#0c0c14]/50 backdrop-blur-md transition-all duration-400 group relative overflow-hidden flex flex-col justify-between`}
+          >
+            <div>
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-4 ${colorMap[FEATURES[5].color].icon}`}>{FEATURES[5].icon}</div>
+              <h3 className="text-white font-semibold text-base mb-2">{FEATURES[5].title}</h3>
+              <p className="text-neutral-500 text-xs leading-relaxed mb-4">{FEATURES[5].desc}</p>
+            </div>
+            <div className="mt-auto pt-2 space-y-4">
+              <ZeroInstallWidget />
+              <ul className="space-y-1.5 pt-2 border-t border-white/5">{FEATURES[5].bullets.map(b => (<li key={b} className={`flex items-center gap-1.5 text-[11px] font-medium ${colorMap[FEATURES[5].color].bullet}`}><Check size={11} className="shrink-0" /> {b}</li>))}</ul>
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>
