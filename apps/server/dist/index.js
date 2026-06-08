@@ -38,17 +38,27 @@ const io = new socket_io_1.Server(server, {
         methods: ['GET', 'POST']
     }
 });
-const pubClient = (0, redis_1.createClient)({
-    url: process.env.REDIS_URL
-});
-pubClient.on("error", (err) => {
-    console.error("Redis error:", err);
-});
-const subClient = pubClient.duplicate();
-Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
-    io.adapter((0, redis_adapter_1.createAdapter)(pubClient, subClient));
-    console.log('Redis adapter connected to Socket.IO');
-});
+if (process.env.REDIS_URL) {
+    const pubClient = (0, redis_1.createClient)({
+        url: process.env.REDIS_URL
+    });
+    pubClient.on("error", (err) => {
+        console.error("Redis error:", err);
+    });
+    const subClient = pubClient.duplicate();
+    subClient.on("error", (err) => {
+        console.error("Redis subClient error:", err);
+    });
+    Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
+        io.adapter((0, redis_adapter_1.createAdapter)(pubClient, subClient));
+        console.log('Redis adapter connected to Socket.IO');
+    }).catch((err) => {
+        console.error('Failed to connect to Redis. Running Socket.IO without Redis adapter. Error:', err.message);
+    });
+}
+else {
+    console.log('No REDIS_URL provided. Running Socket.IO in standalone mode.');
+}
 // Middleware: Authenticate Socket connections
 io.use(async (socket, next) => {
     const token = socket.handshake.auth.token;
