@@ -145,54 +145,54 @@ export function HeroForm() {
     };
 
     return (
-        <div className="w-full max-w-md mx-auto font-outfit">
-            <div className="rounded-2xl border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl bg-[#0c0c14]/75 overflow-hidden">
-                <div className="p-6">
+        <div className="w-full max-w-lg mx-auto font-outfit">
+            <div className="rounded-2xl border border-white/[0.08] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)] backdrop-blur-2xl bg-[#0b0b12]/80 overflow-hidden">
+                <div className="p-8">
                     <AnimatePresence mode="wait">
 
                         {/* AUTH SELECTION SCREEN */}
                         {!token && authMode === 'SELECT' && (
                             <motion.div 
                                 key="select" 
-                                initial={{ opacity: 0, y: 10 }} 
+                                initial={{ opacity: 0, y: 12 }} 
                                 animate={{ opacity: 1, y: 0 }} 
-                                exit={{ opacity: 0, y: -10 }} 
-                                className="flex flex-col gap-4"
+                                exit={{ opacity: 0, y: -12 }} 
+                                className="flex flex-col gap-5"
                             >
                                 <div className="text-center mb-2">
-                                    <h2 className="text-xl font-black text-white leading-tight">Access SyncVerse</h2>
-                                    <p className="text-xs text-neutral-500 mt-1">Select how you want to join the network</p>
+                                    <h2 className="text-2xl font-black text-white leading-tight tracking-tight">Access SyncVerse</h2>
+                                    <p className="text-sm text-neutral-400 mt-1.5 font-light">Select how you want to join the network</p>
                                 </div>
 
                                 {/* Option 1: Guest Card */}
                                 <button
                                     onClick={() => setAuthMode('GUEST')}
-                                    className="w-full text-left p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-purple-500/30 transition-all duration-300 group flex items-start gap-4"
+                                    className="w-full text-left p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-purple-500/30 transition-all duration-300 group flex items-start gap-4 cursor-pointer"
                                 >
-                                    <div className="w-10 h-10 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
-                                        <Compass size={20} />
+                                    <div className="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
+                                        <Compass size={24} />
                                     </div>
                                     <div>
-                                        <h3 className="text-sm font-bold text-white flex items-center gap-1">
-                                            Continue as Guest <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+                                        <h3 className="text-base font-bold text-white flex items-center gap-1.5">
+                                            Continue as Guest <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300 text-purple-400" />
                                         </h3>
-                                        <p className="text-[11px] text-neutral-500 mt-1 font-light leading-relaxed">Instantly join or launch watch parties with a temporary display name. No setup.</p>
+                                        <p className="text-[12px] text-neutral-400 mt-1.5 font-light leading-relaxed">Instantly join or launch watch parties with a temporary display name. No signup needed.</p>
                                     </div>
                                 </button>
 
                                 {/* Option 2: Account Card */}
                                 <button
                                     onClick={() => setAuthMode('LOGIN')}
-                                    className="w-full text-left p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-blue-500/30 transition-all duration-300 group flex items-start gap-4"
+                                    className="w-full text-left p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-blue-500/30 transition-all duration-300 group flex items-start gap-4 cursor-pointer"
                                 >
-                                    <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
-                                        <Key size={20} />
+                                    <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
+                                        <Key size={24} />
                                     </div>
                                     <div>
-                                        <h3 className="text-sm font-bold text-white flex items-center gap-1">
-                                            Sign In / Register <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+                                        <h3 className="text-base font-bold text-white flex items-center gap-1.5">
+                                            Sign In / Register <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300 text-blue-400" />
                                         </h3>
-                                        <p className="text-[11px] text-neutral-500 mt-1 font-light leading-relaxed">Access saved playlists, custom avatar configurations, and customized room presets.</p>
+                                        <p className="text-[12px] text-neutral-400 mt-1.5 font-light leading-relaxed">Access saved playlists, custom avatar configurations, and customized room presets.</p>
                                     </div>
                                 </button>
                             </motion.div>
@@ -205,75 +205,75 @@ export function HeroForm() {
                                 initial={{ opacity: 0, x: 15 }} 
                                 animate={{ opacity: 1, x: 0 }} 
                                 exit={{ opacity: 0, x: -15 }}
-                                className="space-y-4"
+                                className="space-y-5"
                             >
-                                <div className="flex items-center justify-between border-b border-white/[0.06] pb-3 mb-2">
-                                    <h2 className="text-base font-bold text-white">{authMode === 'LOGIN' ? 'Member Login' : 'Create Account'}</h2>
+                                <div className="flex items-center justify-between border-b border-white/[0.06] pb-4 mb-2">
+                                    <h2 className="text-lg font-bold text-white">{authMode === 'LOGIN' ? 'Member Login' : 'Create Account'}</h2>
                                     <button 
                                         onClick={() => { setAuthMode('SELECT'); setError(""); }} 
-                                        className="text-neutral-500 hover:text-white text-xs transition-colors"
+                                        className="text-neutral-400 hover:text-white text-sm transition-colors cursor-pointer"
                                     >
                                         ← Back
                                     </button>
                                 </div>
 
-                                <form onSubmit={handleAuthAndCreate} className="space-y-3">
+                                <form onSubmit={handleAuthAndCreate} className="space-y-4">
                                     {authMode === 'REGISTER' && (
                                         <div>
-                                            <label className="block text-[10px] font-bold text-neutral-500 mb-1 uppercase tracking-wider">Display Name</label>
+                                            <label className="block text-[10px] font-bold text-neutral-500 mb-1.5 uppercase tracking-wider">Your Name</label>
                                             <div className="relative">
-                                                <User size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
+                                                <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" />
                                                 <input 
                                                     type="text" 
                                                     value={name} 
                                                     onChange={(e) => setName(e.target.value)} 
                                                     required 
                                                     placeholder="e.g. Austin"
-                                                    className="w-full pl-10 pr-3 py-2.5 bg-black/40 border border-white/[0.08] focus:border-purple-500 focus:ring-2 focus:ring-purple-500/15 rounded-xl focus:outline-none text-white text-sm transition-all placeholder:text-neutral-600" 
+                                                    className="w-full pl-12 pr-4 py-3 bg-black/40 border border-white/[0.08] focus:border-purple-500 focus:ring-2 focus:ring-purple-500/15 rounded-xl focus:outline-none text-white text-base transition-all placeholder:text-neutral-600" 
                                                 />
                                             </div>
                                         </div>
                                     )}
                                     <div>
-                                        <label className="block text-[10px] font-bold text-neutral-500 mb-1 uppercase tracking-wider">
+                                        <label className="block text-[10px] font-bold text-neutral-500 mb-1.5 uppercase tracking-wider">
                                             {authMode === 'LOGIN' ? 'Email or Username' : 'Email Address'}
                                         </label>
                                         <div className="relative">
-                                            <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
+                                            <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" />
                                             <input
                                                 type="text"
                                                 placeholder={authMode === 'LOGIN' ? 'name@example.com' : 'you@example.com'}
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
                                                 required
-                                                className="w-full pl-10 pr-3 py-2.5 bg-black/40 border border-white/[0.08] focus:border-purple-500 focus:ring-2 focus:ring-purple-500/15 rounded-xl focus:outline-none text-white text-sm transition-all placeholder:text-neutral-600"
+                                                className="w-full pl-12 pr-4 py-3 bg-black/40 border border-white/[0.08] focus:border-purple-500 focus:ring-2 focus:ring-purple-500/15 rounded-xl focus:outline-none text-white text-base transition-all placeholder:text-neutral-600"
                                             />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-bold text-neutral-500 mb-1 uppercase tracking-wider">Password</label>
+                                        <label className="block text-[10px] font-bold text-neutral-500 mb-1.5 uppercase tracking-wider">Password</label>
                                         <div className="relative">
-                                            <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
+                                            <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" />
                                             <input 
                                                 type={showPassword ? "text" : "password"} 
                                                 value={password} 
                                                 onChange={(e) => setPassword(e.target.value)} 
                                                 required 
                                                 placeholder="••••••••"
-                                                className="w-full pl-10 pr-10 py-2.5 bg-black/40 border border-white/[0.08] focus:border-purple-500 focus:ring-2 focus:ring-purple-500/15 rounded-xl focus:outline-none text-white text-sm transition-all placeholder:text-neutral-600" 
+                                                className="w-full pl-12 pr-12 py-3 bg-black/40 border border-white/[0.08] focus:border-purple-500 focus:ring-2 focus:ring-purple-500/15 rounded-xl focus:outline-none text-white text-base transition-all placeholder:text-neutral-600" 
                                             />
                                             <button 
                                                 type="button" 
                                                 onClick={() => setShowPassword(!showPassword)} 
-                                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors"
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors cursor-pointer"
                                             >
-                                                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                             </button>
                                         </div>
                                     </div>
                                     
                                     {error && (
-                                        <div className="p-2.5 rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 text-xs text-center">
+                                        <div className="p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-red-400 text-sm text-center">
                                             {error}
                                         </div>
                                     )}
@@ -281,7 +281,7 @@ export function HeroForm() {
                                     <button 
                                         type="submit" 
                                         disabled={loading} 
-                                        className="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-[0_4px_20px_rgba(168,85,247,0.25)] hover:shadow-[0_4px_30px_rgba(168,85,247,0.35)] transition-all duration-350 disabled:opacity-50 text-xs uppercase tracking-wider cursor-pointer"
+                                        className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-[0_4px_20px_rgba(168,85,247,0.25)] hover:shadow-[0_4px_30px_rgba(168,85,247,0.35)] transition-all duration-350 disabled:opacity-50 text-sm uppercase tracking-wider cursor-pointer mt-2"
                                     >
                                         {loading ? "Processing..." : (authMode === 'LOGIN' ? "Sign In" : "Register & Start")}
                                     </button>
@@ -290,7 +290,7 @@ export function HeroForm() {
                                 <div className="text-center pt-2">
                                     <button 
                                         onClick={() => { setAuthMode(authMode === 'LOGIN' ? 'REGISTER' : 'LOGIN'); setError(""); }} 
-                                        className="text-xs text-purple-400 hover:text-purple-300 font-medium transition-colors"
+                                        className="text-xs text-purple-400 hover:text-purple-300 font-medium transition-colors cursor-pointer"
                                     >
                                         {authMode === 'LOGIN' ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
                                     </button>
@@ -304,21 +304,21 @@ export function HeroForm() {
                                 key="dashboard" 
                                 initial={{ opacity: 0 }} 
                                 animate={{ opacity: 1 }} 
-                                className="space-y-5"
+                                className="space-y-6"
                             >
                                 {/* Dashboard Profile Bar */}
-                                <div className="flex items-center justify-between border-b border-white/[0.06] pb-3 mb-2">
+                                <div className="flex items-center justify-between border-b border-white/[0.06] pb-4 mb-2">
                                     <div>
-                                        <h2 className="text-sm font-bold text-white flex items-center gap-1.5 leading-none">
+                                        <h2 className="text-lg font-bold text-white flex items-center gap-2 leading-none">
                                             Hello, {storedName || name || "Guest"}
                                             {token && !isGuest && (
-                                                <span className="text-[8px] bg-purple-500/20 text-purple-400 px-1.5 py-0.5 rounded font-black tracking-widest">PRO</span>
+                                                <span className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded font-black tracking-widest">PRO</span>
                                             )}
                                         </h2>
                                         {token && isGuest && (
                                             <button 
                                                 onClick={() => { setAuthMode('REGISTER'); useUserStore.getState().logout(); }} 
-                                                className="text-[10px] text-purple-400 hover:underline mt-1 font-medium block"
+                                                className="text-xs text-purple-400 hover:underline mt-2 font-medium block cursor-pointer"
                                             >
                                                 Upgrade to Account
                                             </button>
@@ -328,14 +328,14 @@ export function HeroForm() {
                                         {token ? (
                                             <button 
                                                 onClick={() => { useUserStore.getState().logout(); setName(""); setAuthMode('SELECT'); }} 
-                                                className="text-red-400 hover:text-red-300 text-xs transition-colors font-medium"
+                                                className="text-red-400 hover:text-red-300 text-sm transition-colors font-medium cursor-pointer"
                                             >
                                                 Sign Out
                                             </button>
                                         ) : (
                                             <button 
                                                 onClick={() => { setAuthMode('SELECT'); setError(""); }} 
-                                                className="text-neutral-500 hover:text-white text-xs transition-colors"
+                                                className="text-neutral-400 hover:text-white text-sm transition-colors cursor-pointer"
                                             >
                                                 Cancel
                                             </button>
@@ -344,18 +344,18 @@ export function HeroForm() {
                                 </div>
 
                                 {/* Custom Tab Switcher */}
-                                <div className="bg-black/40 border border-white/[0.06] p-1 rounded-xl flex gap-1 select-none">
+                                <div className="bg-black/40 border border-white/[0.06] p-1.5 rounded-2xl flex gap-1.5 select-none">
                                     <button 
                                         type="button"
                                         onClick={() => { setActiveTab('create'); setError(""); }}
-                                        className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'create' ? "bg-white/5 text-white shadow" : "text-neutral-500 hover:text-neutral-300"}`}
+                                        className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all cursor-pointer ${activeTab === 'create' ? "bg-white/5 text-white shadow" : "text-neutral-500 hover:text-neutral-300"}`}
                                     >
                                         Create Room
                                     </button>
                                     <button 
                                         type="button"
                                         onClick={() => { setActiveTab('join'); setError(""); }}
-                                        className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'join' ? "bg-white/5 text-white shadow" : "text-neutral-500 hover:text-neutral-300"}`}
+                                        className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all cursor-pointer ${activeTab === 'join' ? "bg-white/5 text-white shadow" : "text-neutral-500 hover:text-neutral-300"}`}
                                     >
                                         Join Room
                                     </button>
@@ -371,41 +371,41 @@ export function HeroForm() {
                                             exit={{ opacity: 0, y: -5 }}
                                             transition={{ duration: 0.2 }}
                                             onSubmit={handleAuthAndCreate} 
-                                            className="space-y-4"
+                                            className="space-y-5"
                                         >
                                             {!token && (
                                                 <div>
-                                                    <label className="block text-[10px] font-bold text-neutral-500 mb-1 uppercase tracking-wider">Your Display Name</label>
+                                                    <label className="block text-[10px] font-bold text-neutral-500 mb-1.5 uppercase tracking-wider">Your Display Name</label>
                                                     <div className="relative">
-                                                        <User size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
+                                                        <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" />
                                                         <input 
                                                             type="text" 
                                                             value={name} 
                                                             onChange={(e) => setName(e.target.value)} 
                                                             required 
                                                             placeholder="e.g. Austin" 
-                                                            className="w-full pl-10 pr-3 py-2.5 bg-black/40 border border-white/[0.08] focus:border-purple-500 focus:ring-2 focus:ring-purple-500/15 rounded-xl focus:outline-none text-white text-sm transition-all placeholder:text-neutral-600" 
+                                                            className="w-full pl-12 pr-4 py-3 bg-black/40 border border-white/[0.08] focus:border-purple-500 focus:ring-2 focus:ring-purple-500/15 rounded-xl focus:outline-none text-white text-base transition-all placeholder:text-neutral-600" 
                                                         />
                                                     </div>
                                                 </div>
                                             )}
                                             <div>
-                                                <label className="block text-[10px] font-bold text-neutral-500 mb-1 uppercase tracking-wider">Room Name</label>
+                                                <label className="block text-[10px] font-bold text-neutral-500 mb-1.5 uppercase tracking-wider">Room Name</label>
                                                 <div className="relative">
-                                                    <Tv size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
+                                                    <Tv size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" />
                                                     <input 
                                                         type="text" 
                                                         value={roomName} 
                                                         onChange={(e) => setRoomName(e.target.value)} 
                                                         required 
                                                         placeholder="e.g. Movie Night 🍿" 
-                                                        className="w-full pl-10 pr-3 py-2.5 bg-black/40 border border-white/[0.08] focus:border-purple-500 focus:ring-2 focus:ring-purple-500/15 rounded-xl focus:outline-none text-white text-sm transition-all placeholder:text-neutral-600" 
+                                                        className="w-full pl-12 pr-4 py-3 bg-black/40 border border-white/[0.08] focus:border-purple-500 focus:ring-2 focus:ring-purple-500/15 rounded-xl focus:outline-none text-white text-base transition-all placeholder:text-neutral-600" 
                                                     />
                                                 </div>
                                             </div>
 
                                             {error && (
-                                                <div className="p-2.5 rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 text-xs text-center">
+                                                <div className="p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-red-400 text-sm text-center">
                                                     {error}
                                                 </div>
                                             )}
@@ -413,7 +413,7 @@ export function HeroForm() {
                                             <button 
                                                 type="submit" 
                                                 disabled={loading} 
-                                                className="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-[0_4px_20px_rgba(168,85,247,0.25)] transition-all disabled:opacity-50 text-xs uppercase tracking-wider cursor-pointer"
+                                                className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-[0_4px_20px_rgba(168,85,247,0.25)] transition-all disabled:opacity-50 text-sm uppercase tracking-wider cursor-pointer"
                                             >
                                                 {loading ? "Creating room..." : "Launch Room"}
                                             </button>
@@ -429,41 +429,41 @@ export function HeroForm() {
                                             exit={{ opacity: 0, y: -5 }}
                                             transition={{ duration: 0.2 }}
                                             onSubmit={handleJoinRoom} 
-                                            className="space-y-4"
+                                            className="space-y-5"
                                         >
                                             {!token && (
                                                 <div>
-                                                    <label className="block text-[10px] font-bold text-neutral-500 mb-1 uppercase tracking-wider">Your Display Name</label>
+                                                    <label className="block text-[10px] font-bold text-neutral-500 mb-1.5 uppercase tracking-wider">Your Display Name</label>
                                                     <div className="relative">
-                                                        <User size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
+                                                        <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" />
                                                         <input 
                                                             type="text" 
                                                             value={name} 
                                                             onChange={(e) => setName(e.target.value)} 
                                                             required 
                                                             placeholder="e.g. Austin" 
-                                                            className="w-full pl-10 pr-3 py-2.5 bg-black/40 border border-white/[0.08] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 rounded-xl focus:outline-none text-white text-sm transition-all placeholder:text-neutral-600" 
+                                                            className="w-full pl-12 pr-4 py-3 bg-black/40 border border-white/[0.08] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 rounded-xl focus:outline-none text-white text-base transition-all placeholder:text-neutral-600" 
                                                         />
                                                     </div>
                                                 </div>
                                             )}
                                             <div>
-                                                <label className="block text-[10px] font-bold text-neutral-500 mb-1 uppercase tracking-wider">Room Code or URL</label>
+                                                <label className="block text-[10px] font-bold text-neutral-500 mb-1.5 uppercase tracking-wider">Room Code or URL</label>
                                                 <div className="relative">
-                                                    <Hash size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
+                                                    <Hash size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" />
                                                     <input
                                                         type="text"
                                                         value={joinUrl}
                                                         onChange={(e) => setJoinUrl(e.target.value)}
                                                         required
                                                         placeholder="e.g. syncverse.tv/room/x9a2k"
-                                                        className="w-full pl-10 pr-3 py-2.5 bg-black/40 border border-white/[0.08] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 rounded-xl focus:outline-none text-white text-sm transition-all placeholder:text-neutral-600"
+                                                        className="w-full pl-12 pr-4 py-3 bg-black/40 border border-white/[0.08] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 rounded-xl focus:outline-none text-white text-base transition-all placeholder:text-neutral-600"
                                                     />
                                                 </div>
                                             </div>
 
                                             {error && (
-                                                <div className="p-2.5 rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 text-xs text-center">
+                                                <div className="p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-red-400 text-sm text-center">
                                                     {error}
                                                 </div>
                                             )}
@@ -471,7 +471,7 @@ export function HeroForm() {
                                             <button 
                                                 type="submit" 
                                                 disabled={loading || !joinUrl} 
-                                                className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-[0_4px_20px_rgba(59,130,246,0.25)] transition-all disabled:opacity-50 text-xs uppercase tracking-wider cursor-pointer"
+                                                className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-[0_4px_20px_rgba(59,130,246,0.25)] transition-all disabled:opacity-50 text-sm uppercase tracking-wider cursor-pointer"
                                             >
                                                 {loading ? "Connecting..." : "Connect to Stream"}
                                             </button>

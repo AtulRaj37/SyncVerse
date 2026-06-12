@@ -11,22 +11,17 @@ import { ArrowLeft } from "lucide-react";
 const Galaxy = dynamic(() => import("@/components/Galaxy"), { ssr: false }) as any;
 
 export default function AuthPage() {
-  const { isLowEnd } = useDevicePerformance();
-
   return (
-    <div className="min-h-[100dvh] flex flex-col items-center justify-center relative overflow-hidden bg-[#060610] px-4 font-sans">
-      {/* Background with slight glow */}
-      <div className="fixed inset-0 -z-20 bg-[#060610]">
-        {!isLowEnd && (
-          <Galaxy starSpeed={0} density={1.2} hueShift={140} speed={0.4}
-            glowIntensity={0.2} saturation={0.6} mouseRepulsion={true} repulsionStrength={0.3}
-            twinkleIntensity={0.4} rotationSpeed={0.05} transparent={true} />
-        )}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_0%,rgba(120,60,255,0.12),transparent)] pointer-events-none" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_40%_at_50%_100%,rgba(60,100,255,0.08),transparent)] pointer-events-none" />
+    <div className="min-h-[100dvh] flex flex-col items-center justify-center relative overflow-hidden bg-[#04040a] px-4 font-sans">
+      {/* High-Performance hardware-accelerated ambient glow background */}
+      <div className="fixed inset-0 -z-20 overflow-hidden bg-[#04040a]">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-900/10 blur-[120px] animate-[float-glow-1_25s_infinite_alternate_ease-in-out]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-900/10 blur-[120px] animate-[float-glow-2_30s_infinite_alternate_ease-in-out_2s]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_0%,rgba(120,60,255,0.06),transparent)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_40%_at_50%_100%,rgba(60,100,255,0.04),transparent)] pointer-events-none" />
       </div>
 
-      <div className="w-full max-w-md relative z-10 flex flex-col items-center">
+      <div className="w-full max-w-lg relative z-10 flex flex-col items-center">
         {/* Back Button */}
         <motion.div 
           initial={{ opacity: 0, x: -10 }} 
@@ -50,24 +45,24 @@ export default function AuthPage() {
             <Image 
               src="/logos/logo-transparent.png" 
               alt="SyncVerse" 
-              width={200} 
-              height={50} 
+              width={220} 
+              height={55} 
               priority 
-              style={{ width: "auto", height: "45px" }}
-              className="drop-shadow-[0_0_24px_rgba(168,85,247,0.5)] hover:scale-105 transition-transform duration-300"
+              style={{ width: "auto", height: "48px" }}
+              className="drop-shadow-[0_0_24px_rgba(168,85,247,0.4)] hover:scale-105 transition-transform duration-300"
             />
           </Link>
         </motion.div>
 
         {/* Auth Form Container */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+          initial={{ opacity: 0, scale: 0.97, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
           className="w-full relative"
         >
           {/* Subtle glow behind the card */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-purple-600/20 to-blue-600/20 rounded-3xl blur-xl opacity-50" />
+          <div className="absolute -inset-1 bg-gradient-to-r from-purple-600/15 to-blue-600/15 rounded-3xl blur-xl opacity-40" />
           
           {/* The actual form component */}
           <HeroForm />
@@ -83,6 +78,19 @@ export default function AuthPage() {
           Built for real connection by <span className="text-purple-400 font-bold">Atul Raj</span>
         </motion.div>
       </div>
+
+      <style jsx global>{`
+        @keyframes float-glow-1 {
+          0% { transform: translate(0px, 0px) scale(1); }
+          50% { transform: translate(40px, 60px) scale(1.1); }
+          100% { transform: translate(-20px, -40px) scale(0.9); }
+        }
+        @keyframes float-glow-2 {
+          0% { transform: translate(0px, 0px) scale(1); }
+          50% { transform: translate(-50px, -30px) scale(1.05); }
+          100% { transform: translate(30px, 50px) scale(0.95); }
+        }
+      `}</style>
     </div>
   );
 }
