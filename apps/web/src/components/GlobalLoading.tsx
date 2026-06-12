@@ -7,11 +7,21 @@ import Image from "next/image";
 type Particle = { id: number; x: number; y: number; size: number; delay: number; duration: number };
 
 export function GlobalLoading() {
-    const [visible, setVisible] = useState(true);
+    const [visible, setVisible] = useState(false);
     // Particles generated client-side only — avoids SSR/hydration mismatch from Math.random()
     const [particles, setParticles] = useState<Particle[]>([]);
 
     useEffect(() => {
+        // Only run on client-side and check sessionStorage to skip loading screen on reload/refresh
+        if (typeof window !== "undefined") {
+            const hasLoaded = sessionStorage.getItem("sv_loaded");
+            if (hasLoaded) {
+                return;
+            }
+            setVisible(true);
+            sessionStorage.setItem("sv_loaded", "true");
+        }
+
         setParticles(
             Array.from({ length: 22 }, (_, i) => ({
                 id: i,
