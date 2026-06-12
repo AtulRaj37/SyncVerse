@@ -1,36 +1,20 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Image from "next/image";
 import Link from "next/link";
 import { HeroForm } from "@/components/HeroForm";
-import { ArrowLeft, Tv } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 export default function AuthPage() {
   return (
     <div className="min-h-[100dvh] w-full flex flex-col lg:flex-row bg-[#04040a] font-sans relative overflow-hidden">
       {/* LEFT COLUMN: AUTH PANEL */}
-      <div className="w-full lg:w-[45%] min-h-[100dvh] flex flex-col justify-center px-6 md:px-16 py-12 bg-[#06060c] border-r border-white/[0.04] relative z-10">
-        <div className="max-w-md w-full mx-auto space-y-8">
+      <div className="w-full lg:w-[48%] min-h-[100dvh] flex flex-col justify-center px-6 md:px-16 py-12 bg-[#06060c] border-r border-white/[0.04] relative z-10">
+        <div className="max-w-[520px] w-full mx-auto space-y-8">
           {/* Back Button */}
           <div>
             <Link href="/" className="inline-flex items-center gap-2 text-xs text-neutral-500 hover:text-white transition-colors">
               <ArrowLeft size={14} /> Back to home
-            </Link>
-          </div>
-
-          {/* Logo Header */}
-          <div>
-            <Link href="/">
-              <Image 
-                src="/logos/logo-transparent.png" 
-                alt="SyncVerse" 
-                width={200} 
-                height={50} 
-                priority 
-                style={{ width: "auto", height: "40px" }}
-                className="drop-shadow-[0_0_24px_rgba(168,85,247,0.4)] hover:scale-105 transition-transform duration-300"
-              />
             </Link>
           </div>
 
@@ -40,7 +24,7 @@ export default function AuthPage() {
       </div>
 
       {/* RIGHT COLUMN: SIMPLE SHOWCASE (Desktop Only) */}
-      <div className="hidden lg:flex lg:w-[55%] min-h-[100dvh] flex-col justify-between p-20 bg-gradient-to-br from-[#080815] to-[#04040a] relative overflow-hidden select-none">
+      <div className="hidden lg:flex lg:w-[52%] min-h-[100dvh] flex-col justify-between p-20 bg-gradient-to-br from-[#080815] to-[#04040a] relative overflow-hidden select-none">
         {/* Subtle grid pattern overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff01_1px,transparent_1px),linear-gradient(to_bottom,#ffffff01_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
 
@@ -51,22 +35,22 @@ export default function AuthPage() {
         {/* Empty top slot */}
         <div />
 
-        {/* Central Clean Typography Block */}
+        {/* Central Clean Typography Block - Cozy copy */}
         <div className="relative z-10 max-w-lg space-y-6 my-auto">
-          <span className="text-xs font-bold uppercase tracking-[0.2em] text-purple-400">SyncVerse Live Sync</span>
+          <span className="text-xs font-bold uppercase tracking-[0.2em] text-purple-400">SyncVerse Watch Rooms</span>
           <h1 className="text-5xl font-black text-white leading-tight tracking-tight">
-            Watch together in <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">perfect harmony.</span>
+            Watch and listen <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">together with friends.</span>
           </h1>
-          <p className="text-base text-neutral-400 leading-relaxed font-light">
-            SyncVerse coordinates playback states globally with sub-millisecond precision. If a viewer lags behind due to network issues, they are seamlessly synchronized back to the group instantly.
+          <p className="text-base text-neutral-400 leading-relaxed font-light font-sans">
+            SyncVerse makes it easy to hang out online. Create a room, share the link, and enjoy videos, music, and screen shares together in real-time. Completely free, no setup required.
           </p>
         </div>
 
-        {/* Simple Footer Stats */}
+        {/* Simple Footer Copy (Human-friendly) */}
         <div className="relative z-10 flex justify-between items-center text-xs text-neutral-600 font-medium">
-          <span>RTC Signaling: Active</span>
-          <span>Latency Limit: &lt;50ms</span>
+          <span>Free Watch Parties</span>
+          <span>No Extensions Needed</span>
         </div>
       </div>
 
